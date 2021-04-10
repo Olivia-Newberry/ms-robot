@@ -8,6 +8,9 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('there it is')){
 		if (Math.random() < 0.5)message.reply('https://youtu.be/ULkuwxJTGtY');
 	}
+	if (message.content.toLowerCase().includes('beep boop')){
+		message.reply('https://youtu.be/5DBc5NpyEoo');
+	}
 	if (message.content.toLowerCase().includes('thatcher')||message.content.toLowerCase().includes('milk snatcher')){
 		message.reply('https://youtu.be/kPIdRJlzERo');
 	}
