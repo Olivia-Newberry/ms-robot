@@ -38,6 +38,10 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('felicis')||message.content.toLowerCase().includes('jesso')){
 		message.react("511339802877231105")
 	}
+	if (message.content.toLowerCase().includes('qq')||message.content.toLowerCase().includes('quentin')||message.content.toLowerCase().includes('qassemyar')){
+		message.react("776449403287765012");
+		message.react("776524622325219368");
+	}
 	if(command == '!time'){
 		message.channel.send('https://imgs.xkcd.com/comics/now.png?'+Date.now());
 	}
