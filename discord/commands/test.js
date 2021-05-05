@@ -32,9 +32,6 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('minecraft')){
 		message.react("634294300976349194")
 	}
-	if (message.content.toLowerCase().includes('heart')){
-		message.react("758296751861268540")
-	}
 	if (message.content.toLowerCase().includes('felicis')||message.content.toLowerCase().includes('jesso')){
 		message.react("511339802877231105")
 	}
