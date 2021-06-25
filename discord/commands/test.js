@@ -14,6 +14,13 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('thatcher')||message.content.toLowerCase().includes('milk snatcher')){
 		message.reply('https://youtu.be/kPIdRJlzERo');
 	}
+	if (message.content.toLowerCase().includes("i'm a pirate")
+		|| message.content.toLowerCase().includes("we're pirates")
+		|| message.content.toLowerCase().includes("you are a pirate")
+		|| message.content.toLowerCase().includes("pirating")
+	){
+		message.reply('https://youtu.be/5qacGULztuQ');
+	}
 	if (message.content.toLowerCase().includes('crab')){
 		if (Math.random() < 0.5)message.react("🦀")
 	}
