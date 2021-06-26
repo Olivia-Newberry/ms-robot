@@ -49,6 +49,19 @@ function testCommand(command, args, message) {
 	if(command == '!time'){
 		message.channel.send('https://imgs.xkcd.com/comics/now.png?'+Date.now());
 	}
+	if(command == '!access'){
+		;(async () => {
+			userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-1].content.match(/(\d){18}/)[0];
+			})
+			let user = await message.guild.members.cache.get(userID);
+			let member = await message.guild.member(user);
+			let role = await message.guild.roles.cache.find(r => r.name == 'Verified');
+			member.roles.add(role).catch(console.error);
+			return message.channel.send(`The user was verified!`);
+
+		})().catch( e => { console.error(e) })
+	}
 }
 
 module.exports = testCommand;
