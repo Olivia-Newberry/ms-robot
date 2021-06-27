@@ -49,6 +49,12 @@ function testCommand(command, args, message) {
 	if(command == '!time'){
 		message.channel.send('https://imgs.xkcd.com/comics/now.png?'+Date.now());
 	}
+	if(command == '!rejoice'){
+		message.channel.send('https://youtu.be/NmPhaG1ud38');
+	}
+	if(command == '!movealong'){
+		message.channel.send('https://youtu.be/_Wx98AolMQw');
+	}
 	if(command == '!access'){
 		;(async () => {
 			userID = await message.channel.messages.fetch().then((messages) => {
