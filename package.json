@@ -9,9 +9,9 @@
   "author": "Olivia Newberry",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.5.1",
+    "discord.js": "^12.5.3",
     "giphy-api": "^2.0.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "sqlite3": "^4.2.0",
     "twitter": "^1.7.1"
   }
