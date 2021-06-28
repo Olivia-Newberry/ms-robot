@@ -55,16 +55,45 @@ function testCommand(command, args, message) {
 	if(command == '!movealong'){
 		message.channel.send('https://youtu.be/_Wx98AolMQw');
 	}
-	if(command == '!access'){
+	if(command == '!access' || command == '!!verified' || command == '!!boop'){
 		;(async () => {
-			userID = await message.channel.messages.fetch().then((messages) => {
+			/*userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			if(!userID) */userID = await message.channel.messages.fetch().then((messages) => {
 				return messages.array()[messages.array().length-1].content.match(/(\d){18}/)[0];
 			})
+			if(userID == '651034500897439745')userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			message.channel.send('UserID = '+userID);
+			//message.channel.send(message.channel.messages[message.channel.messages.length-1].content.match(/(\d){18}/)[0]);
 			let user = await message.guild.members.cache.get(userID);
 			let member = await message.guild.member(user);
 			let role = await message.guild.roles.cache.find(r => r.name == 'Verified');
 			member.roles.add(role).catch(console.error);
 			return message.channel.send(`The user was verified!`);
+
+		})().catch( e => { console.error(e) })
+	}
+	if(command == '!!limited' || command == '!limited'){
+		;(async () => {
+			/*userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			if(!userID) */userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-1].content.match(/(\d){18}/)[0];
+			})
+			if(userID == '651034500897439745')userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			message.channel.send('UserID = '+userID);
+			//message.channel.send(message.channel.messages[message.channel.messages.length-1].content.match(/(\d){18}/)[0]);
+			let user = await message.guild.members.cache.get(userID);
+			let member = await message.guild.member(user);
+			let role = await message.guild.roles.cache.find(r => r.name == 'verified');
+			member.roles.add(role).catch(console.error);
+			return message.channel.send(`The user was given the limited access role!`);
 
 		})().catch( e => { console.error(e) })
 	}
