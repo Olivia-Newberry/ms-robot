@@ -111,6 +111,9 @@ function testCommand(command, args, message) {
 			return message.channel.send('UserID = '+userID+" \nTag = <@"+userID+'>');
 		})().catch( e => { console.error(e) })
 	}
+	if (message.content.toLowerCase().includes('!verification')){
+		message.channel.send('!!verify');
+	}
 }
 
 module.exports = testCommand;
