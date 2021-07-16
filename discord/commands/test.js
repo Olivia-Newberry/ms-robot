@@ -97,6 +97,20 @@ function testCommand(command, args, message) {
 
 		})().catch( e => { console.error(e) })
 	}
+	if(command == '!user'){
+		;(async () => {
+			/*userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			if(!userID) */userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-1].content.match(/(\d){18}/)[0];
+			})
+			if(userID == '651034500897439745')userID = await message.channel.messages.fetch().then((messages) => {
+				return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
+			})
+			return message.channel.send('UserID = '+userID+" \nTag = <@"+userID+'>');
+		})().catch( e => { console.error(e) })
+	}
 }
 
 module.exports = testCommand;
