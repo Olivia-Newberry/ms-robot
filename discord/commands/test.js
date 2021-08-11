@@ -14,11 +14,8 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('thatcher')||message.content.toLowerCase().includes('milk snatcher')){
 		message.reply('https://youtu.be/kPIdRJlzERo');
 	}
-	if (message.content.toLowerCase().includes("i'm a pirate")
-		|| message.content.toLowerCase().includes("we're pirates")
-		|| message.content.toLowerCase().includes("you are a pirate")
-		|| message.content.toLowerCase().includes("pirating")
-	){
+	const pirate = ["you are a pirate", "you're a pirate", "i am a pirate", "i'm a pirate", "we are pirates", "we're pirates", "pirating"]
+	if (pirate.some(el => message.content.toLowerCase().includes(el))){
 		message.reply('https://youtu.be/5qacGULztuQ');
 	}
 	if (message.content.toLowerCase().includes('crab')){
@@ -27,8 +24,8 @@ function testCommand(command, args, message) {
 	if (message.content.toLowerCase().includes('pamplemousse')||message.content.toLowerCase().includes('pomegranate')){
 		message.react("826570456063541259")
 	}
-	if (message.content.toLowerCase().includes('no u')||message.content.toLowerCase().includes('no you')){
-		if (Math.random() < 0.5)message.react("589309987960913920")
+	if (message.content.toLowerCase().match(/(?<!\w|')no (u|you)(?!\w|')/)){
+		message.react("589309987960913920")
 	}
 	if (message.content.toLowerCase().includes('hella')){
 		message.react("681288946386599962")
