@@ -10,8 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.5.3",
-    "giphy-api": "^2.0.1",
-    "node-fetch": "^2.6.1",
+    "giphy-api": "^2.0.2",
+    "mariadb": "^2.5.4",
+    "node-fetch": "^2.6.2",
     "sqlite3": "^4.2.0",
     "twitter": "^1.7.1"
   }
