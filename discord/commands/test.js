@@ -44,6 +44,7 @@ function testCommand(command, args, message) {
 		message.react("776524622325219368");
 	}
 	if(command == '!time'){
+		message.channel.send('<t:'+Math.floor(new Date().getTime()/1000.0)+'>');
 		message.channel.send('https://imgs.xkcd.com/comics/now.png?'+Date.now());
 	}
 	if(command == '!rejoice'){
