@@ -14,7 +14,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
     description: "Random "+animal+" picture:",
     title: fact,
     image: {
-      url: img
+      url: image
     },
     //random color
     color: Math.floor(Math.random() * 16777215).toString(16)
