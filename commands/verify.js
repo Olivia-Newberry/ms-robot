@@ -18,7 +18,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       var targetMsgContent = [...targetMsg][1].content;
       return targetMsgContent.match(regex)[0];
     })
-    message.channel.send('UserID = '+userID+'\n Their tag is <@'+userID+'>');
+    message.channel.send('UserID = '+userID+'\nTheir tag is <@'+userID+'>');
     //message.channel.send(message.channel.messages[message.channel.messages.length-1].content.match(/(\d){18}/)[0]);
     let user = await message.guild.members.cache.get(userID);
     if(!user) return message.channel.send('User not found');
