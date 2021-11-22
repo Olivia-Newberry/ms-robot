@@ -1,13 +1,7 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
+exports.run = async (client, message, args, level) => {
   const { image, fact } = await fetch('https://some-random-api.ml/animal/red_panda').then(response => response.json());
-  //returns a random red_panda image and fact with format:
-  //{
-    // "image": "some link",
-    // "fact": "some fact"
-  //}
-  //get image
   
   const embed = {
     description: "Random red panda picture:",
@@ -30,8 +24,8 @@ exports.conf = {
 };
 
 exports.help = {
-  name: "redPanda",
+  name: "redpanda",
   category: "Fun",
   description: "Grab a random red panda fact and cute picture",
-  usage: "redPanda"
+  usage: "redpanda"
 };
