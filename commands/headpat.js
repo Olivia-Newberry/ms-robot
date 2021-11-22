@@ -10,7 +10,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)
-      .addField(`Have a headpat`)
+      .addField(`Here`,`Have a pat on the head`, true)
       .attachFiles([headpatAvatar])
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
