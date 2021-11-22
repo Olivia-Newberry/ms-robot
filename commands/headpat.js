@@ -3,14 +3,15 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
   
   const member = (message.guild) ? message.mentions.members.first() || message.guild.members.cache.get(args[0]) || message.member : message.member || message.guild.members.cache.get(args[0]) ;
-  if (!member) return message.channel.send('Please mention the user for the userinfo..');
+  if (!member) return message.channel.send('unable to find any member..');
   const user = member.user;
   var avatar = user.displayAvatarURL()
-  var triggeredAvatar = ('https://some-random-api.ml/canvas/triggered?avatar='+avatar) 
+  var headpatAvatar = ('https://some-random-api.ml/canvas/triggered?avatar='+avatar) 
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)
-      .attachFiles([triggeredAvatar])
+      .addField(`Have a headpat`)
+      .attachFiles([headpatAvatar])
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
   }
@@ -18,13 +19,13 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
  exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: [],
+  aliases: ["pat"],
   permLevel: "User"
 };
 
 exports.help = {
-  name: "triggered",
-  category: "Avatar stuff",
-  description: "overlay effect",
-  usage: "triggered [user/id]"
+  name: "headpat",
+  category: "gifs",
+  description: "give a user a headpat",
+  usage: "headpat [user/id]"
 };
