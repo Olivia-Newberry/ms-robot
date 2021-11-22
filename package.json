@@ -1,19 +1,41 @@
 {
-  "name": "discord-bot",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ms-robot",
+  "version": "2.1.0",
+  "description": "An updated version of ms-robot that uses a message handler based on anIdiotsGuide",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=16"
   },
   "author": "Olivia Newberry",
-  "license": "ISC",
+  "contributors": [
+    "Lucie"
+  ],
+  "license": "MIT",
   "dependencies": {
-    "discord.js": "^12.5.3",
+    "@discordjs/builders": "^0.2.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "@sapphire/time-utilities": "^1.3.8",
+    "colorette": "^1.3.0",
+    "discord-api-types": "^0.24.0",
+    "discord.js": "^13.0.1",
+    "dotenv": "^10.0.0",
+    "enmap": "^5.8.5",
     "giphy-api": "^2.0.2",
-    "mariadb": "^2.5.4",
-    "node-fetch": "^2.6.2",
-    "sqlite3": "^4.2.0",
-    "twitter": "^1.7.1"
+    "mariadb": "^2.5.5",
+    "moment": "^2.29.1",
+    "node-fetch": "^3.1.0",
+    "sqlite3": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0"
   }
 }
