@@ -9,9 +9,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   var jailAvatar = ('https://some-random-api.ml/canvas/jail?avatar='+avatar) 
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
-      .setThumbnail(user.displayAvatarURL())
       .addField(`${user.tag}`, `${user}`, true)
-      .addField("Nickname:", `${member.nickname}`, true)
       .setImage(jailAvatar)
       .setFooter(`Replying to ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
@@ -26,7 +24,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
 
 exports.help = {
   name: "jail",
-  category: "Miscellaneous",
+  category: "Avatar stuff",
   description: "Put user in jail",
   usage: "jail [user/id]"
 };
