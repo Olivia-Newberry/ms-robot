@@ -18,12 +18,12 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
  exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: ["gay", "rainbow"],
+  aliases: ["rainbowwash", "rainbow"],
   permLevel: "User"
 };
 
 exports.help = {
-  name: "rainbowwash",
+  name: "gay",
   category: "Avatar stuff",
   description: "rainbowwash a user",
   usage: "gay [user/id]"
