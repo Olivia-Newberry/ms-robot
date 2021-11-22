@@ -13,6 +13,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       .setImage(triggeredAvatar)
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
+    message.channel.send(triggeredAvatar);
   }
 
  exports.conf = {
