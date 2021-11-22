@@ -30,17 +30,25 @@ exports.run = (client, message, args, level) => {
     const longest = commandNames.reduce((long, str) => Math.max(long, str.length), 0);
 
     let currentCategory = "";
+    let page = 1;
     let output = `= Command List =\n[Use ${settings.prefix}help <commandname> for details]\n`;
     const sorted = enabledCommands.sort((p, c) => p.help.category > c.help.category ? 1 : 
       p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
 
     sorted.forEach( c => {
-      const cat = toProperCase(c.help.category);
-      if (currentCategory !== cat) {
-        output += `\u200b\n== ${cat} ==\n`;
-        currentCategory = cat;
+      const catg = toProperCase(c.help.category);
+      if (currentCategory !== catg) {
+        output += `\u200b\n== ${catg} ==\n`;
+        currentCategory = catg;
       }
       output += `${settings.prefix}${c.help.name}${" ".repeat(longest - c.help.name.length)} :: ${c.help.description}\n`;
+      //if output has more than 1500 characters, send it and reset it.
+      if (output.length > 1500) {
+        message.channel.send(codeBlock("asciidoc", output));
+        page++;
+        output = `= Command List =\n[Use ${settings.prefix}help <commandname> for detail]\nPage `+page+`\n`;
+      }
+
     });
     message.channel.send(codeBlock("asciidoc", output));
 
