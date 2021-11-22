@@ -25,7 +25,7 @@ exports.run = (client, message, args, level) => { // eslint-disable-line no-unus
     }
 
   }
-  message.channel.send(msg);
+  message.channel.send({ embeds: [msg]});
 };
 
 exports.conf = {
