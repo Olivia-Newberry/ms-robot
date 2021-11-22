@@ -26,7 +26,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
 exports.conf = {
   enabled: true,
   guildOnly: false,
-  aliases: [],
+  aliases: ['red'],
   permLevel: "User"
 };
 
@@ -34,5 +34,5 @@ exports.help = {
   name: "redPanda",
   category: "Fun",
   description: "Grab a random red panda fact and cute picture",
-  usage: "redPpanda"
+  usage: "redPanda"
 };
