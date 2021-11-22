@@ -11,7 +11,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)
       .setImage(jailAvatar)
-      .setFooter(`Replying to ${message.author.username}#${message.author.discriminator}`)
+      .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
   }
 
