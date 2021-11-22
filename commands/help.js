@@ -46,7 +46,7 @@ exports.run = (client, message, args, level) => {
       if (output.length > 1500) {
         message.channel.send(codeBlock("asciidoc", output));
         page++;
-        output = `= Command List =\n[Use ${settings.prefix}help <commandname> for detail]\nPage `+page+`\n`;
+        output = `\u200b\n== ${catg} ==\nPage `+page+`\n`;
       }
 
     });
