@@ -1,5 +1,4 @@
 @echo off
-:start
 echo Installing/updating bot dependencies
 call npm ci --only=production --loglevel=warn >NUL
 
@@ -8,7 +7,7 @@ goto start
   pause
   exit /b %errorlevel%
 )
-
+:start
 echo Starting the bot
 call npm run start
 
@@ -17,3 +16,4 @@ goto start
   pause
   exit /b %errorlevel%
 )
+goto start
