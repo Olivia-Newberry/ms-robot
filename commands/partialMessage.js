@@ -33,7 +33,7 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 	}
 
 	//if one of the args is "bee"
-	if (args.some(el => el.toLowerCase() == "bee")){
+	if (args.some(el => el.toLowerCase() == "bee") || command.toLowerCase == "bee"){
 	//if (message.content.toLowerCase().includes('bee')){
 		message.react("795792808916418580")
 	}
