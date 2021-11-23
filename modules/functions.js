@@ -72,6 +72,55 @@ async function awaitReply(msg, question, limit = 60000) {
   }
 }
 
+async function find_user(message, args){
+  let members = message.guild.members;
+  let cache = members.cache;
+  let query = args[0];
+  let user;
+  let result;
+
+  if (query) {
+
+    // Mention
+    if (message.mentions.users.first() != null) {
+      user = message.mentions.users.first();
+      if (!user) {
+        user = undefined;
+      }
+    }
+    // Discord ID
+    else if (query.match(/\d{16,22}$/gi)) {
+      user = await cache.get(query);
+      if (!user) {
+        user = undefined;
+      }
+    }
+    // Discord Tag
+    else if (query.match(/^.{1,32}(#)+\d{4}$/gim)) {
+      user = await cache.find(x => x.user.tag === query);
+      if (!user) {
+        user = undefined;
+      }
+    }
+    // Username/Nickname
+    else if (query.match(/^.{1,32}$/gi)) {
+      user = await members.fetch({ query: query, limit: 1 });
+      user = await user.first();
+      if (!user) {
+        user = undefined;
+      }
+    }
+    // Unknown
+    else if (!user) {
+      user = undefined;
+    }
+  }
+  else {
+    user = message.author;
+  }
+  return user;
+};
+
 
 /* MISCELLANEOUS NON-CRITICAL FUNCTIONS */
   
@@ -96,4 +145,4 @@ process.on("unhandledRejection", err => {
   console.error(err);
 });
 
-module.exports = { getSettings, permlevel, awaitReply, toProperCase };
+module.exports = { getSettings, permlevel, awaitReply, find_user, toProperCase };
