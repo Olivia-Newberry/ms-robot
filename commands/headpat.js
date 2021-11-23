@@ -14,7 +14,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       .addField(`${user.tag}`, `${user}`, true)
       .addField(`Here`,`Have a pat on the head`, true)
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
-      .setImage([headpat]);
+      .setImage(headpat);
     message.channel.send({embeds:[embeduserinfo]})
   }
 
