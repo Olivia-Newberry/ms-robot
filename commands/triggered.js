@@ -8,7 +8,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   var avatar = user.displayAvatarURL()
   var triggeredAvatar = ('https://some-random-api.ml/canvas/triggered?avatar='+avatar) 
   //replace webp with png
-  triggeredAvatar = triggeredAvatar.replace(".webp", ".png&file=image.gif")
+  triggeredAvatar = triggeredAvatar.replace(".webp", ".png&file=image.webp")
 
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
