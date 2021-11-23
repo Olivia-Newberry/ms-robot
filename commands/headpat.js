@@ -9,16 +9,29 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   const user = member.user;
   var avatar = user.displayAvatarURL()
   var headpat = ('https://some-random-api.ml/animu/pat') 
-    const embeduserinfo = new MessageEmbed()
-      .setColor("RANDOM")
-      .addField(`${user.tag}`, `${user}`, true)
-      .addField(`Here`,`Have a pat on the head`, true)
-      .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
-      .setImage(headpat);
-    message.channel.send({embeds:[embeduserinfo]})
+  var color = Math.floor(Math.random() * 16777215).toString(16);
+  let embed = {
+    color: color,
+    description: '<@'+message.author.id+'> '+args.join(' '),
+    image: {
+      url: headpat,
+    },
+    fields: [
+      {
+        name: `**Here ${user}**`,
+        value: `**Have a pat on the head.**`,
+        inline: true
+      },
+    ],
+    footer: {
+      text: 'Initiated by '+message.author.username+'#'+message.author.discriminator,
+      icon_url: message.author.displayAvatarURL()
+    }
   }
+  message.channel.send({embeds: [embed]});
+}
 
- exports.conf = {
+exports.conf = {
   enabled: true,
   guildOnly: true,
   aliases: ["pat"],
