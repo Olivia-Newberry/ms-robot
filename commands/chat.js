@@ -20,7 +20,7 @@ exports.conf = {
 
 exports.help = {
   name: "chat",
-  category: "Miscellaneous",
+  category: "Fun",
   description: "Chat with a bot",
   usage: "chat"
 };
