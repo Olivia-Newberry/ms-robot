@@ -11,17 +11,10 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   var color = Math.floor(Math.random() * 16777215).toString(16);
   let embed = {
     color: color,
-    description: '<@'+message.author.id+'> '+args.join(' '),
+    description: args.join(' ')+' **Have a pat on the head.**',
     image: {
       url: link,
     },
-    fields: [
-      {
-        name: `**Here** ${user}`,
-        value: `**Have a pat on the head.**`,
-        inline: true
-      },
-    ],
     footer: {
       text: 'Initiated by '+message.author.username+'#'+message.author.discriminator,
       icon_url: message.author.displayAvatarURL()
