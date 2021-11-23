@@ -6,7 +6,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   
   const embed = {
     title: caption,
-    description: category,
+    description: 'Category: '+category,
     color: Math.floor(Math.random() * 16777215).toString(16),
     image: {
       url: image
