@@ -7,18 +7,17 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   const member = (message.guild) ? message.mentions.members.first() || message.guild.members.cache.get(args[0]) || message.member : message.member || message.guild.members.cache.get(args[0]) ;
   if (!member) return message.channel.send('unable to find any member..');
   const user = member.user;
-  var avatar = user.displayAvatarURL()
-  var headpat = ('https://some-random-api.ml/animu/pat') 
+  const { link } = await fetch('https://some-random-api.ml/animu/pat').then(response => response.json());
   var color = Math.floor(Math.random() * 16777215).toString(16);
   let embed = {
     color: color,
     description: '<@'+message.author.id+'> '+args.join(' '),
     image: {
-      url: headpat,
+      url: link,
     },
     fields: [
       {
-        name: `**Here ${user}**`,
+        name: `**Here** ${user}`,
         value: `**Have a pat on the head.**`,
         inline: true
       },
