@@ -7,6 +7,8 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   const user = member.user;
   var avatar = user.displayAvatarURL()
   var glassAvatar = ('https://some-random-api.ml/canvas/glass?avatar='+avatar) 
+  //replace webp with png
+  glassAvatar = glassAvatar.replace(".webp", ".png")
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)

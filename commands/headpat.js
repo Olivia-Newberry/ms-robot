@@ -8,13 +8,13 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   if (!member) return message.channel.send('unable to find any member..');
   const user = member.user;
   var avatar = user.displayAvatarURL()
-  var headpatAvatar = ('https://some-random-api.ml/canvas/triggered?avatar='+avatar) 
+  var headpat = ('https://some-random-api.ml/animu/pat') 
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)
       .addField(`Here`,`Have a pat on the head`, true)
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
-      .attachFiles([headpatAvatar]);
+      .attachFiles([headpat]);
     message.channel.send({embeds:[embeduserinfo]})
   }
 
