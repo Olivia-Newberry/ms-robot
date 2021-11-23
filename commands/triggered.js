@@ -9,11 +9,11 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
   var triggeredAvatar = ('https://some-random-api.ml/canvas/triggered?avatar='+avatar) 
   //replace webp with png
   triggeredAvatar = triggeredAvatar.replace(".webp", ".png")
-  
+
     const embeduserinfo = new MessageEmbed()
       .setColor("RANDOM")
       .addField(`${user.tag}`, `${user}`, true)
-      .attachFiles([triggeredAvatar])
+      .setImage([triggeredAvatar])
       .setFooter(`Initiated by ${message.author.username}#${message.author.discriminator}`)
     message.channel.send({embeds:[embeduserinfo]})
   }
