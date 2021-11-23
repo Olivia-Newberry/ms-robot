@@ -32,9 +32,8 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 		message.react("681288946386599962")
 	}
 
-	//if one of the args is "bee"
-	if (args.some(el => el.toLowerCase() == "bee") || command.toLowerCase == "bee"){
-	//if (message.content.toLowerCase().includes('bee')){
+	//if one of the args is "bee" or first word is "bee"
+	if (args.some(el => el.toLowerCase() == "bee") || message.content.toLowerCase().match(/^bee/)){
 		message.react("795792808916418580")
 	}
 	if (message.content.toLowerCase().includes('minecraft')){
