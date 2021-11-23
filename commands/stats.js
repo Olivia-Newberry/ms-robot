@@ -10,9 +10,7 @@ exports.run = (client, message, args, level) => { // eslint-disable-line no-unus
   • Uptime     :: ${duration}
   • Users      :: ${client.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b).toLocaleString()}
   • Servers    :: ${client.guilds.cache.size.toLocaleString()}
-  • Channels   :: ${client.channels.cache.size.toLocaleString()}
-  • Discord.js :: v${version}
-  • Node       :: ${process.version}`);
+  • Channels   :: ${client.channels.cache.size.toLocaleString()}`);
   message.channel.send(stats);
 };
 
