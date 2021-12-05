@@ -5,16 +5,28 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       return messages.array()[messages.array().length-2].content.match(/(\d){18}/)[0];
     })
     if(!userID) */
-    let userID = await message.channel.messages.fetch().then(([...messages]) => {
-      var msgCount = messages.length
-      if(msgCount == 50) message.channel.send('This is a long thread, you may have to manually add the role');
-      var targetMsg = messages[msgCount-1];
+    // let userID = await message.channel.messages.fetch().then(([...messages]) => {
+    //   var msgCount = messages.length
+    //   if(msgCount == 50) message.channel.send('This is a long thread, you may have to manually add the role');
+    //   var targetMsg = messages[msgCount-1];
+    //   var targetMsgContent = [...targetMsg][1].content;
+    //   return targetMsgContent.match(regex)[0];
+    // })
+    let userID = await message.channel.messages.fetchPinned().then(([...messages]) => {
+      var targetMsg = messages[0];
       var targetMsgContent = [...targetMsg][1].content;
       return targetMsgContent.match(regex)[0];
     })
-    if(userID == '651034500897439745')userID = await message.channel.messages.fetch().then(([...messages]) => {
-      var msgCount = messages.length
-      var targetMsg = messages[msgCount-2];
+    // if(userID == '651034500897439745')userID = await message.channel.messages.fetch().then(([...messages]) => {
+    //   var msgCount = messages.length
+    //   var targetMsg = messages[msgCount-2];
+    //   var targetMsgContent = [...targetMsg][1].content;
+    //   return targetMsgContent.match(regex)[0];
+    // })
+    // this probably isn't needed anymore (@staff ping fix)
+    // if unnecessary it can be removed after full testing:
+    if(userID == '651034500897439745')userID = await message.channel.messages.fetchPinned().then(([...messages]) => {
+      var targetMsg = messages[0];
       var targetMsgContent = [...targetMsg][1].content;
       return targetMsgContent.match(regex)[0];
     })
