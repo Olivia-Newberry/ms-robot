@@ -1,0 +1,14 @@
+[Unit]
+Description=ms-robot
+
+[Service]
+ExecStart=node /src/ms-robot/ms-robot/index.js
+Restart=always
+User=nobody
+# Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+WorkingDirectory=/src/ms-robot/ms-robot
+
+[Install]
+WantedBy=multi-user.target
