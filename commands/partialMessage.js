@@ -10,7 +10,13 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 		message.react("634294300976349194")
 	}
 
-	if (message.content.toLowerCase().includes('!verification') || message.content.toLowerCase().includes('! verification')) {
+	if (
+		(
+			message.content.toLowerCase().includes('!verification')
+			|| message.content.toLowerCase().includes('! verification')
+		)
+		&& message.channel.name.toLowerCase() != 'mossy'
+	) {
 		message.channel.send('!!verify');
 	}
 
