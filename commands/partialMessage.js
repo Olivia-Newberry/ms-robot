@@ -15,13 +15,14 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 			message.content.toLowerCase().includes('!verification')
 			|| message.content.toLowerCase().includes('! verification')
 		)
+		&& message.channel.name != undefined
 		&& message.channel.name.toLowerCase() != 'mossy'
 	) {
 		message.channel.send('!!verify');
 	}
 
 	//if channel name contains "selfie"
-	if (message.channel.name.toLowerCase().includes("selfie")) {
+	if (message.channel.name != undefined && message.channel.name.toLowerCase().includes("selfie")) {
 		if (message.attachments.size > 0) {
 			message.react("758296751861268540");
 		}
@@ -31,7 +32,7 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 
 exports.conf = {
 	enabled: true,
-	guildOnly: true,
+	guildOnly: false,
 	aliases: [],
 	permLevel: "User"
 };
