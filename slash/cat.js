@@ -1,4 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 exports.run = async (client, interaction) => { // eslint-disable-line no-unused-vars
 
@@ -12,9 +12,9 @@ exports.run = async (client, interaction) => { // eslint-disable-line no-unused-
   await interaction.deferReply();
   await interaction.editReply({embeds: [factEmbed]});
 
-  const { link } = await fetch('https://some-random-api.ml/img/cat').then(response => response.json());
+  const { link } = await fetch('https://some-random-api.com/img/cat').then(response => response.json());
   const cat = link;
-  const { fact } = await fetch('https://some-random-api.ml/facts/cat').then(response => response.json());
+  const { fact } = await fetch('https://some-random-api.com/facts/cat').then(response => response.json());
   
   const embed = {
     description: "Random cat picture:",

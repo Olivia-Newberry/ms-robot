@@ -1,8 +1,8 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   
-  const { joke } = await fetch('https://some-random-api.ml/joke').then(response => response.json());
+  const { joke } = await fetch('https://some-random-api.com/joke').then(response => response.json());
   
   const embed = {
     title: joke,

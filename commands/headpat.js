@@ -1,13 +1,13 @@
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   const { MessageEmbed } = require("discord.js");
-  const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+  const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
   const http = require('http'); // or 'https' for https:// URLs
   const fs = require('fs');
 
   const member = (message.guild) ? message.mentions.members.first() || message.guild.members.cache.get(args[0]) || message.member : message.member || message.guild.members.cache.get(args[0]) ;
   if (!member) return message.channel.send('unable to find any member..');
   const user = member.user;
-  const { link } = await fetch('https://some-random-api.ml/animu/pat').then(response => response.json());
+  const { link } = await fetch('https://some-random-api.com/animu/pat').then(response => response.json());
   var color = Math.floor(Math.random() * 16777215).toString(16);
   let embed = {
     color: color,

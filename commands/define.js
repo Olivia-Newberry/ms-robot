@@ -1,4 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   //generate random color

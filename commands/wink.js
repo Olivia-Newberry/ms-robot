@@ -1,10 +1,10 @@
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   const { MessageEmbed } = require("discord.js");
-  const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+  const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
   const http = require('http'); // or 'https' for https:// URLs
   const fs = require('fs');
 
-  const { link } = await fetch('https://some-random-api.ml/animu/wink').then(response => response.json());
+  const { link } = await fetch('https://some-random-api.com/animu/wink').then(response => response.json());
   var color = Math.floor(Math.random() * 16777215).toString(16);
   let embed = {
     color: color,

@@ -1,8 +1,8 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   let animal = 'panda';
-  const { image, fact } = await fetch('https://some-random-api.ml/animal/'+animal).then(response => response.json());
+  const { image, fact } = await fetch('https://some-random-api.com/animal/'+animal).then(response => response.json());
   //returns a random panda image and fact with format:
   //{
     // "image": "some link",

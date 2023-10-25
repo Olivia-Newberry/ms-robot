@@ -1,7 +1,7 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 exports.run = async (client, message, args, level) => {
-  const { image, fact } = await fetch('https://some-random-api.ml/animal/red_panda').then(response => response.json());
+  const { image, fact } = await fetch('https://some-random-api.com/animal/red_panda').then(response => response.json());
   
   const embed = {
     description: "Random red panda picture:",
