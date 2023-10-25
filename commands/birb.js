@@ -2,7 +2,6 @@ const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fet
 
 exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
   let animal = 'bird';
-  let white = 16777215;
   const { image, fact } = await fetch("https://some-random-api.com/animal/" + animal).then(response => response.json());
   const embed = {
     description: "Random " + animal + " picture:",
@@ -11,7 +10,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
       url: image
     },
     //random color
-    color: Math.floor(Math.random() * white).toString(16)
+    color: Math.floor(Math.random() * (Math.pow(2, 24) - 1)).toString(16)
   };
 
   message.channel.send({ embeds: [embed] });
