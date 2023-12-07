@@ -16,7 +16,7 @@ exports.run = async (client, message, args, level, command) => { // eslint-disab
 			|| message.content.toLowerCase().includes('! verification')
 		)
 		&& message.channel.name != undefined
-		&& message.channel.name.toLowerCase() != 'mossy'
+		&& !(['mossy','newcomers'].includes(message.channel.name.toLowerCase()))
 	) {
 		message.channel.send('!!verify');
 	}
