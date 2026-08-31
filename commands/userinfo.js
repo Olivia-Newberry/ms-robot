@@ -1,7 +1,8 @@
+import { find_user } from "../modules/functions.js";
+import { MessageEmbed } from "discord.js";
+import moment from 'moment';
+
 export async function run(client, message, args, level) { // eslint-disable-line no-unused-vars
-  const { MessageEmbed } = require("discord.js");
-  const moment = require('moment');
-  const Discord = require('discord.js');
   
   const member = (message.guild) ? message.mentions.members.first() || message.guild.members.cache.get(args[0]) || message.member : message.member || message.guild.members.cache.get(args[0]) ;
   if (!member) return message.channel.send('Please mention the user for the userinfo..');

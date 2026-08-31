@@ -1,8 +1,9 @@
+import { find_user } from "../modules/functions.js";
+import { MessageEmbed } from "discord.js";
+import moment from 'moment';
+
 export async function run(client, message, args, level) { // eslint-disable-line no-unused-vars
-const { find_user } = require("../modules/functions.js");
-const { MessageEmbed } = require("discord.js");
-const moment = require('moment');
-const regex = /(\d){18}/;
+  const regex = /(\d){18}/;
   //if no args
   let channelCat = (message.channel.parent.parent !== null) ? message.channel.parent.parent.name.toLowerCase() : message.channel.parent.name.toLowerCase();
   if(channelCat.includes("thread")){
