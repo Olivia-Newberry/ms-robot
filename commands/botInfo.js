@@ -7,7 +7,7 @@ export function run(client, message, args, level) { // eslint-disable-line no-un
   const duration = durationFormatter.format(client.uptime);
   const msg = {
     title: "about ms robot",
-    description: "ms robot is a bot that is managed and hosted by @Cyndergosa#2493\nIf you wish to suggest changes, send me a DM or open a pull request over at github\n",
+    description: "ms robot is a bot that is managed and hosted by @cyndergosa\nIf you wish to suggest changes, send me a DM or open a pull request or issue requesting update over at github\n",
     fields: [
       {
         name: "Github",
