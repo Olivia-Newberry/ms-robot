@@ -1,11 +1,10 @@
 const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
+import querystring from "querystring";
 
 export async function run(client, message, args, level) { // eslint-disable-line no-unused-vars
   //generate random color
   var color = Math.floor(Math.random() * 16777215).toString(16);
-  const Discord = require('discord.js');
-  const querystring = require('querystring');
-  
+
   function trim (str, max){
     return (str.length > max) ? `${str.slice(0, max - 3)}...` : str;
   };
@@ -26,8 +25,7 @@ export async function run(client, message, args, level) { // eslint-disable-line
   
   //console.log(list);
   const [answer] = list;
-  
-  
+
   const embed = {
     color: color,
     description: `**${answer.word}**\n\nCommand issued by ${message.author.tag}`,

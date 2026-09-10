@@ -4,7 +4,7 @@
 // purging the hard drive. DO NOT LET ANYONE ELSE USE THIS
 
 import { codeBlock } from "@discordjs/builders";
-
+import util from "util";
 /*
   MESSAGE CLEAN FUNCTION
 
@@ -17,7 +17,7 @@ async function clean(client, text) {
   if (text && text.constructor.name == "Promise")
     text = await text;
   if (typeof text !== "string")
-    text = require("util").inspect(text, {depth: 1});
+    text = util.inspect(text, {depth: 1});
 
   text = text
     .replace(/`/g, "`" + String.fromCharCode(8203))

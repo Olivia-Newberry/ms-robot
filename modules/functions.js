@@ -57,12 +57,12 @@ function permlevel(message) {
 function getSettings(guild) {
   settings.ensure("default", config.defaultSettings);
 
-  // Extract guild ID safely if a guild object or ID was passed
-  const guildId = typeof guild === "string" ? guild : guild?.id;
-
-  if (!guildId) return settings.get("default");
-
   try {
+    // Extract guild ID safely if a guild object or ID was passed
+    const guildId = typeof guild === "string" ? guild : guild?.id;
+
+    if (!guildId) return settings.get("default");
+
     const guildConf = settings.get(guildId) || {};
     return ({ ...settings.get("default"), ...guildConf });
   } catch (err) {
