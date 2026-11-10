@@ -58,15 +58,7 @@ export async function run(client, message, args, level) { // eslint-disable-line
           .addField("Nickname:", `${member.nickname}`, true)
           .addField("In Server", message.guild.name, true)
       }
-      
-      if(member.presence !== null){
-        embeduserinfo
-          .addField("Status:", `${member.presence.status}`, true)
-          .addField("Game:", `${member.presence.game ? member.presence.game.name : 'None'}`, true)
-      }
-      embeduserinfo
-        
-        //.addField("Bot:", `${user.bot}`, true)
+
       if(inGuild){
         embeduserinfo
         .addField("Joined The Server On:", `<t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:D> at <t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:t> <t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:R>`, false)
@@ -125,14 +117,6 @@ export async function run(client, message, args, level) { // eslint-disable-line
         .addField("Nickname:", `${member.nickname}`, true)
         .addField("In Server", message.guild.name, true)
     }
-    if(member.presence !== null){
-      embeduserinfo
-        .addField("Status:", `${member.presence.status}`, true)
-        .addField("Game:", `${member.presence.game ? member.presence.game.name : 'None'}`, true)
-    }
-    embeduserinfo
-      
-      //.addField("Bot:", `${user.bot}`, true)
     if(inGuild){
       embeduserinfo
         .addField("Joined The Server On:", `<t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:D> at <t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:t> <t:${Math.floor(moment.unix(member.joinedAt).valueOf()/1000000)}:R>`, false)
