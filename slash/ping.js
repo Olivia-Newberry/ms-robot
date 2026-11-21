@@ -8,10 +8,11 @@ export const commandData = {
   name: "ping",
   description: "Pongs when pinged.",
   options: [],
-  defaultPermission: true,
 };
 
 export const conf = {
   permLevel: "User",
-  guildOnly: true
+  guildOnly: true,
+  category: "Miscellaneous",
+  replaces: ["ping", "test"],
 };

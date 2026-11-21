@@ -13,5 +13,7 @@ export default (client, member) => {
 
   // Send the welcome message to the welcome channel
   // There's a place for more configs here.
-  member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send(welcomeMessage).catch(console.error);
+  // Optional chaining because a renamed or deleted welcome channel used to throw here,
+  // and a throw in an event handler crashes the bot.
+  member.guild.channels.cache.find(c => c.name === settings.welcomeChannel)?.send(welcomeMessage).catch(console.error);
 };

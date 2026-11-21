@@ -1,21 +1,12 @@
+// Commands deploy themselves on startup (see modules/deploy.js), so this is only for
+// forcing a re-register, e.g. after /reload changed a command's options. Kept as a
+// message command in case slash commands are ever missing; "@bot deploy" works even
+// without the Message Content intent.
+import { deployCommands, describeDeploy } from "../modules/deploy.js";
+
 export async function run(client, message, args, level) { // eslint-disable-line no-unused-vars
-
-  // We'll partition the slash commands based on the guildOnly boolean.
-  // Separating them into the correct objects defined in the array below.
-  const [globalCmds, guildCmds] = client.container.slashcmds.partition(c => !c.conf.guildOnly);
-
-  // Give the user a notification the commands are deploying.
   await message.channel.send("Deploying commands!");
-
-  // We'll use set but please keep in mind that `set` is overkill for a singular command.
-  // Set the guild commands like 
-  await client.guilds.cache.get(message.guild.id)?.commands.set(guildCmds.map(c => c.commandData));
-
-  // Then set the global commands like 
-  await client.application?.commands.set(globalCmds.map(c => c.commandData)).catch(e => console.log(e));
-
-  // Reply to the user that the commands have been deployed.
-  await message.channel.send("All commands deployed!");
+  await message.channel.send(describeDeploy(await deployCommands(client, { force: true })));
 }
 
 export const conf = {

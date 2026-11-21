@@ -1,12 +1,10 @@
 import { error } from "./Logger.js";
 import config from "../config.js";
-import { settings } from "./settings.js";
+import { sanitizeSettings, settings } from "./settings.js";
+import { safeGet } from "./db.js";
+import { shutdown } from "./lifecycle.js";
 
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = import.meta.dirname;
 // Let's start by getting some useful functions that we'll use throughout
 // the bot, like logs and elevation features.
 
@@ -54,113 +52,24 @@ function permlevel(message) {
 //   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 //   return ({...settings.get("default"), ...guildConf});
 // }
+// Never throws: unreadable or oddly typed saved settings fall back to the defaults in
+// config.js, key by key, so one bad value doesn't reset a server's whole setup.
 function getSettings(guild) {
-  settings.ensure("default", config.defaultSettings);
-
-  try {
-    // Extract guild ID safely if a guild object or ID was passed
-    const guildId = typeof guild === "string" ? guild : guild?.id;
-
-    if (!guildId) return settings.get("default");
-
-    const guildConf = settings.get(guildId) || {};
-    return ({ ...settings.get("default"), ...guildConf });
-  } catch (err) {
-    // If a specific guild's data is corrupted, fallback to default instead of crashing
-    console.warn(`Failed to load settings for guild ${guildId}, using defaults. Error:`, err.message);
-    return settings.get("default");
-  }
-}
-
-/*
-  SINGLE-LINE AWAIT MESSAGE
-
-  A simple way to grab a single reply, from the user that initiated
-  the command. Useful to get "precisions" on certain things...
-
-  USAGE
-
-  const response = await awaitReply(msg, "Favourite Color?");
-  msg.reply(`Oh, I really love ${response} too!`);
-
-*/
-async function awaitReply(msg, question, limit = 60000) {
-  const filter = m => m.author.id === msg.author.id;
-  await msg.channel.send(question);
-  try {
-    const collected = await msg.channel.awaitMessages({ filter, max: 1, time: limit, errors: ["time"] });
-    return collected.first().content;
-  } catch (e) {
-    return false;
-  }
-}
-
-async function find_user(message, args){
-  let members = message.guild.members;
-  let cache = members.cache;
-  let query = args[0];
-  let user;
-  let result;
-
-  if (query) {
-
-    // Mention
-    if (message.mentions.users.first() != null) {
-      user = message.mentions.users.first();
-      if (!user) {
-        user = undefined;
-      }
-    }
-    // Discord ID
-    else if (query.match(/\d{16,22}$/gi)) {
-      user = await cache.get(query);
-      if (!user) {
-        user = undefined;
-      }
-    }
-    // Discord Tag
-    else if (query.match(/^.{1,32}(#)+\d{4}$/gim)) {
-      user = await cache.find(x => x.user.tag === query);
-      if (!user) {
-        user = undefined;
-      }
-    }
-    // Username/Nickname
-    else if (query.match(/^.{1,32}$/gi)) {
-      user = await members.fetch({ query: query, limit: 1 });
-      user = await user.first();
-      if (!user) {
-        user = undefined;
-      }
-    }
-    // Unknown
-    else if (!user) {
-      user = undefined;
-    }
-  }
-  else {
-    user = message.author;
-  }
-  return user;
-};
-
-
-/* MISCELLANEOUS NON-CRITICAL FUNCTIONS */
-  
-// toProperCase(String) returns a proper-cased string such as: 
-// toProperCase("Mary had a little lamb") returns "Mary Had A Little Lamb"
-function toProperCase(string) {
-  return string.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+  const guildId = typeof guild === "string" ? guild : guild?.id;
+  const defaults = { ...config.defaultSettings, ...sanitizeSettings(safeGet(settings, "default", {})) };
+  if (!guildId) return defaults;
+  return { ...defaults, ...sanitizeSettings(safeGet(settings, guildId, {})) };
 }
 
 // These 2 process methods will catch exceptions and give *more details* about the error and stack trace.
 process.on("uncaughtException", (err) => {
-  const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, "g"), "./");
+  // Non-Error values can be thrown too, and have no stack.
+  const errorMsg = String(err?.stack ?? err).replaceAll(`${__dirname}/`, "./");
   error(`Uncaught Exception: ${errorMsg}`);
   console.error(err);
-  // Always best practice to let the code crash on uncaught exceptions. 
-  // Because you should be catching them anyway.
-  process.exit(1);
+  // Always best practice to let the code crash on uncaught exceptions, since state
+  // may be broken. Queued work is saved first and the service manager restarts us.
+  shutdown(1, "Crashed");
 });
 
 process.on("unhandledRejection", err => {
@@ -168,5 +77,5 @@ process.on("unhandledRejection", err => {
   console.error(err);
 });
 
-export { getSettings, permlevel, awaitReply, find_user, toProperCase };
-export default { getSettings, permlevel, awaitReply, find_user, toProperCase };
+export { getSettings, permlevel };
+export default { getSettings, permlevel };

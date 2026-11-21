@@ -1,3 +1,7 @@
 services:
   ms-robot:
     build: .
+    # Come back up after a crash or !reboot. Queued jobs resume on start.
+    restart: unless-stopped
+    # Time for the bot to finish queued sends after `docker stop` before it is killed.
+    stop_grace_period: 20s

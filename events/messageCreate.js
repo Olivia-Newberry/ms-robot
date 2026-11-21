@@ -28,7 +28,7 @@ export default async (client, message) => {
   // code, would render it useless.
   const prefixMention = new RegExp(`^<@!?${client.user.id}> ?$`);
   if (message.content.match(prefixMention)) {
-    return message.reply(`My prefix on this guild is \`${settings.prefix}\``);
+    return message.reply("My commands are slash commands now. Type `/` to see them, or use `/help`.");
   }
 
   // It's also good practice to ignore any and all messages that do not start
@@ -56,7 +56,19 @@ export default async (client, message) => {
   const cmd = (prefix) ? container.commands.get(command) || container.commands.get(container.aliases.get(command)) : container.commands.get('partialMessage');
   // using this const varName = thing OR otherThing; is a pretty efficient
   // and clean way to grab one of 2 values!
-  if (!cmd && prefix) return;
+  if (!cmd && prefix) {
+    // Most commands moved to slash commands, so people are told where they went. Only
+    // when the bot was @mentioned: other bots share the "!" prefix, and replying to
+    // "!set" or "!help" meant for them gets in the way of configuring those bots.
+    const hint = prefix[0].startsWith("<@") ? container.moved.get(command) : null;
+    if (hint) {
+      return message.reply({
+        content: `\`${command}\` is a slash command now: \`${hint}\``,
+        allowedMentions: { repliedUser: settings.commandReply === "true" },
+      });
+    }
+    return;
+  }
 
   // Some commands may not be useable in DMs. This check prevents those commands from running
   // and return a friendly error message.

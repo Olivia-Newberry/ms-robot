@@ -1,7 +1,10 @@
 // This will check if the node version you are running is the required
 // Node version, if it isn't it will throw the following error to inform
 // you.
-if (Number(process.version.slice(1).split(".")[0]) < 16) throw new Error("Node 16.x or higher is required. Update Node on your system.");
+// 20.11 is the first release with everything used here: built-in fetch,
+// AbortSignal.timeout and import.meta.dirname.
+const [major, minor] = process.versions.node.split(".").map(Number);
+if (major < 20 || (major === 20 && minor < 11)) throw new Error("Node 20.11 or higher is required. Update Node on your system.");
 import "dotenv/config";
 
 // Load up the discord.js library
@@ -12,16 +15,23 @@ import { readdirSync } from "fs";
 import config from "./config.js";
 
 import * as logger from "./modules/Logger.js";
+import { setClient, shutdown } from "./modules/lifecycle.js";
 // This is your client. Some people call it `bot`, some people call it `self`,
 // some might call it `cootchie`. Either way, when you see `client.something`,
 // or `bot.something`, this is what we're referring to. Your client.
 const client = new Client({ intents: config.intents, partials: config.partials });
+setClient(client);
 
 // Aliases, commands and slash commands are put in collections where they can be
 // read from, catalogued, listed, etc.
 const commands = new Collection();
 const aliases = new Collection();
 const slashcmds = new Collection();
+const components = new Collection();
+// Where each command was loaded from, so /reload can re-import it.
+const files = new Map();
+// Old prefix command names and the slash command that replaced each one.
+const moved = new Map();
 
 // Generate a cache of client permissions for pretty perm names in commands.
 const levelCache = {};
@@ -36,6 +46,9 @@ client.container = {
   commands,
   aliases,
   slashcmds,
+  components,
+  files,
+  moved,
   levelCache
 };
 
@@ -48,9 +61,11 @@ const init = async () => {
   // here and everywhere else.
   const commands = readdirSync("./commands/").filter(file => file.endsWith(".js"));
   for (const file of commands) {
-    const props = await import(`./commands/${file}`);
+    const url = new URL(`./commands/${file}`, import.meta.url).href;
+    const props = await import(url);
     logger.log(`Loading Command: ${props.help.name}. 👌`, "log");
     client.container.commands.set(props.help.name, props);
+    client.container.files.set(props.help.name, { kind: "command", url });
     props.conf.aliases.forEach(alias => {
       client.container.aliases.set(alias, props.help.name);
     });
@@ -59,12 +74,31 @@ const init = async () => {
   // Now we load any **slash** commands you may have in the ./slash directory.
   const slashFiles = readdirSync("./slash").filter(file => file.endsWith(".js"));
   for (const file of slashFiles) {
-    const command = await import(`./slash/${file}`);
-    const commandName = file.split(".")[0];
+    const url = new URL(`./slash/${file}`, import.meta.url).href;
+    const command = await import(url);
+    const commandName = command.commandData.name;
     logger.log(`Loading Slash command: ${commandName}. 👌`, "log");
     
     // Now set the name of the command with it's properties.
-    client.container.slashcmds.set(command.commandData.name, command);
+    client.container.slashcmds.set(commandName, command);
+    client.container.files.set(commandName, { kind: "slash", url });
+
+    // A list means "now /<this command>"; an object gives each old name its own hint,
+    // e.g. dog -> "/animal kind:dog".
+    const replaces = command.conf.replaces ?? [];
+    const hints = Array.isArray(replaces) ? Object.fromEntries(replaces.map(old => [old, `/${commandName}`])) : replaces;
+    for (const [old, hint] of Object.entries(hints)) client.container.moved.set(old.toLowerCase(), hint);
+  }
+
+  // Button, select menu and modal handlers, keyed by the prefix of their customId.
+  // See modules/components.js.
+  const componentFiles = readdirSync("./components").filter(file => file.endsWith(".js"));
+  for (const file of componentFiles) {
+    const handler = await import(`./components/${file}`);
+    // Two handlers on one prefix would silently shadow each other; fail at startup instead.
+    if (client.container.components.has(handler.prefix)) throw new Error(`Two component handlers use the prefix "${handler.prefix}" (${file})`);
+    logger.log(`Loading Component handler: ${handler.prefix}. 👌`, "log");
+    client.container.components.set(handler.prefix, handler);
   }
 
   // Then we load events, which will include our message and ready event.
@@ -85,7 +119,12 @@ const init = async () => {
   client.on("threadCreate", (thread) => thread.join());
 
   // Here we login the client.
-  client.login(process.env.TOKEN);
+  // Exiting lets the service manager retry. Otherwise a bad token or a Discord outage
+  // at startup leaves the process running but offline, and nothing restarts it.
+  client.login(process.env.TOKEN).catch(e => {
+    logger.error(`Couldn't log in to Discord: ${e.message}`);
+    shutdown(1, "Login failed");
+  });
 
 // End top-level async/await function.
 };

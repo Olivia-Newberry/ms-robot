@@ -3,12 +3,14 @@
   "version": "2.1.0",
   "description": "An updated version of ms-robot that uses a message handler based on anIdiotsGuide",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "test": "node --test \"tests/*.test.js\"",
+    "start": "node index.js",
+    "test:live": "node --test \"tests/live/*.live.js\""
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20.11"
   },
   "author": "Olivia Newberry",
   "contributors": [
@@ -16,19 +18,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@discordjs/builders": "^0.2.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
     "@sapphire/time-utilities": "^1.3.8",
     "colorette": "^1.3.0",
-    "discord-api-types": "^0.24.0",
-    "discord.js": "^13.0.1",
+    "discord.js": "^14.28.1",
     "dotenv": "^10.0.0",
-    "enmap": "^6.1.6",
-    "giphy-api": "^2.0.2",
-    "mariadb": "^2.5.5",
-    "moment": "^2.29.1",
-    "node-fetch": "^3.1.0",
-    "sqlite3": "^6.0.1"
+    "enmap": "^6.1.6"
   },
   "devDependencies": {
     "eslint": "^7.30.0",
@@ -39,7 +33,6 @@
     "eslint-plugin-promise": "^5.1.0"
   },
   "allowScripts": {
-    "sqlite3@6.0.1": true,
     "better-sqlite3@12.11.1": true
   }
 }

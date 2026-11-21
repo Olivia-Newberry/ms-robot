@@ -1,27 +1,64 @@
 # ms-robot
 
-Discord bot
+A Discord bot for community servers: self-service role panels, moderation tools (an
+edit/delete log, user lookups, role hand-outs), per-server settings, and some fun
+commands.
 
-Note: some code remains from a previous use case where the bot would upload messages in a specific channel to twitter but only if they came from a specific bot, as well as another module that used to sync minecraft messages with the game server that used to run on localhost on a minecraft channel, these are no longer in use
+## Setup
 
-## Role commands
-
-`/addrole` and `/removerole` hand out roles from a per-server list. `/roleconfig` sets
-up that list. Everything here needs Manage Roles.
+Needs Node 20.11 or newer.
 
 ```txt
-/roleconfig managers   add role:@mods     confirm:iknowwhatimdoing
-/roleconfig assignable add role:@verified confirm:iknowwhatimdoing
-/roleconfig list
+npm ci
+npm start
 ```
 
-`managers` is who can use the commands, `assignable` is what they can hand out. Nothing
-works until both have something in them. The confirm word is just so you don't change
-this by accident, it isn't a secret.
+Create `.env`:
 
-The bot needs Manage Roles as well, and its role has to sit above anything you make
-assignable, otherwise Discord won't let it.
+```txt
+TOKEN=bot token
+OWNER=your Discord user ID (gets the Bot Owner level: /eval, /deploy)
+GIPHY_API_KEY=key for /gif
+MESSAGE_CONTENT_INTENT=true   (only once that intent is enabled, see below)
+```
 
-Two things to watch: don't put a managers role in the assignable list or people can
-hand themselves access, and anything assignable can go to anyone, even roles ranked
-above whoever ran the command. So keep it to harmless roles.
+In the Discord Developer Portal, under the bot's **Privileged Gateway Intents**:
+
+- **Server Members** is required: the bot won't connect without it. Welcome messages,
+  member counts and `!user` name search use it.
+- **Message Content** is optional, and is what Discord's intent review covers. Without
+  it, the message log can't see text, the message count in user info is left out, chat
+  features don't run, and message commands only work as `@ms robot user` instead of
+  `!user`. The bot logs a warning at startup when it's off. Set
+  `MESSAGE_CONTENT_INTENT=true` only after enabling it, or Discord refuses the
+  connection.
+
+Commands are slash commands, and the bot registers them itself on startup in every
+server it's in. To keep it running, see [docs/operations.md](docs/operations.md)
+(systemd, Docker, crash recovery).
+
+## Commands
+
+`/help` lists what each person can use.
+
+| Area | Commands | Docs |
+|---|---|---|
+| Role panels | `/rolepanel` | [role-panels.md](docs/commands/role-panels.md) |
+| Role hand-outs | `/addrole`, `/removerole`, `/roleconfig` | [role-commands.md](docs/commands/role-commands.md) |
+| Message log | `/messagelog` | [message-log.md](docs/commands/message-log.md) |
+| User info | `/userinfo`, `/threaduser`, `!user` | [user-info.md](docs/commands/user-info.md) |
+| Settings | `/settings`, `/set`, `/config`, `/conf` | [settings.md](docs/commands/settings.md) |
+| Chat features | `/reactions`, keyword replies, `!verification` | [chat-features.md](docs/commands/chat-features.md) |
+| Fun | `/animal`, `/cat`, `/hug`, `/wink`, `/facepalm`, `/headpat`, `/joke`, `/define`, `/gif`, `/time`, `/movealong`, `/rejoice` | [fun.md](docs/commands/fun.md) |
+| Utility | `/help`, `/ping`, `/stats`, `/botinfo`, `/mylevel`, `/timeout`, `/leave` | [utility.md](docs/commands/utility.md) |
+| Bot admin | `/deploy`, `/reload`, `/reboot`, `/eval` | [admin.md](docs/commands/admin.md) |
+
+## Development
+
+```txt
+npm test            offline, a few seconds
+npm run test:live   also checks the outside APIs the fun commands use
+```
+
+See [docs/development.md](docs/development.md) for the project layout, adding commands
+and buttons, the job queue, and how the tests work.

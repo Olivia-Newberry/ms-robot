@@ -4,6 +4,8 @@ Description=ms-robot
 [Service]
 ExecStart=node /src/ms-robot/ms-robot/index.js
 Restart=always
+# Wait before restarting so a crash loop doesn't hit systemd's start limit and stay down.
+RestartSec=5
 User=nobody
 # Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
 Group=nogroup

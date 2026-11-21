@@ -1,4 +1,10 @@
-import { Intents } from "discord.js";
+import { GatewayIntentBits, Partials } from "discord.js";
+// Role settings hold IDs (or names from older versions); see modules/roleMatch.js for
+// why names alone can't be trusted.
+import { resolveRoles } from "./modules/roleMatch.js";
+
+// Whether the member has any of the roles a role setting lists.
+const hasRoleSetting = (message, value) => resolveRoles(message.guild, value).some(role => message.member.roles.cache.has(role.id));
 
 const config = {
   // Bot Admins, level 9 by default. Array of user ID strings.
@@ -10,32 +16,47 @@ const config = {
   // Allowed bots, bots allowed to talk to bot. Array of user ID strings.
   "allowedBots": [
     "700002697100918935", // Sora
-	"719611772859842635", // lumina
+    "719611772859842635", // lumina
   ],
+
+  // Giphy key for /gif, from GIPHY_API_KEY in .env. Without it /gif says it isn't set up,
+  // and the bot warns at startup.
+  giphyApiKey: process.env.GIPHY_API_KEY || null,
 
   // Intents the bot needs.
   // By default GuideBot needs Guilds, Guild Messages and Direct Messages to work.
   // For join messages to work you need Guild Members, which is privileged and requires extra setup.
   // For more info about intents see the README.
-  intents: [ 
-    Intents.FLAGS.GUILDS, 
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_BANS,
-    Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
-    Intents.FLAGS.GUILD_INTEGRATIONS,
-    Intents.FLAGS.GUILD_WEBHOOKS,
-    Intents.FLAGS.GUILD_INVITES,
-    Intents.FLAGS.GUILD_VOICE_STATES,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    Intents.FLAGS.GUILD_MESSAGE_TYPING,
-    Intents.FLAGS.DIRECT_MESSAGES,
-    Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-    Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildModeration, // was GUILD_BANS
+    GatewayIntentBits.GuildExpressions, // was GUILD_EMOJIS_AND_STICKERS
+    GatewayIntentBits.GuildIntegrations,
+    GatewayIntentBits.GuildWebhooks,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageTyping,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.DirectMessageTyping,
+    // Privileged: message text, attachments and embeds come through empty without it.
+    // Only switch on once it's enabled for the bot in the Developer Portal, otherwise
+    // Discord refuses the connection ("Disallowed intents").
+    ...(process.env.MESSAGE_CONTENT_INTENT === "true" ? [GatewayIntentBits.MessageContent] : []),
   ],
-  // Partials your bot may need should go here, CHANNEL is required for DM's
+  // Partials your bot may need should go here, CHANNEL is required for DM's.
+  // MESSAGE lets edit/delete events fire for messages that aren't cached, so the
+  // message log can still say *something* happened to them.
+  // Reaction and User let role panel reactions arrive for panel messages posted
+  // before the bot last restarted.
   partials: [
-    "CHANNEL"
+    Partials.Channel,
+    Partials.Message,
+    Partials.Reaction,
+    Partials.User
   ],
 
   // Default per-server settings. These settings are entered in a database on first load, 
@@ -52,7 +73,12 @@ const config = {
     "commandReply": "true", // Toggle this if you want the bot to ping the executioner or not.
     "welcomeChannel": "welcome",
     "welcomeMessage": "Say hello to {{user}}, everyone! We all need a warm welcome sometimes :D",
-    "welcomeEnabled": "false"
+    "welcomeEnabled": "false",
+    "messageLogChannel": "false", // Channel ID for edit/delete logs, set with /messagelog.
+    "messageLogIgnore": "false",
+    "minecraftReactChance": "100", // % of messages mentioning minecraft that get a reaction; 0 turns it off. /reactions
+    "selfieReact": "true", // React to pictures in selfie channels. /reactions
+    "selfTimeout": "true" // Let members use /timeout on themselves.
   },
 
   // PERMISSION LEVEL DEFINITIONS.
@@ -67,8 +93,7 @@ const config = {
       check: (message) => {
         if(message.settings.verifiedRole != "false") {
           try {
-            const verifiedRole = message.guild.roles.find(r => r.name.toLowerCase() === message.settings.verifiedRole.toLowerCase());
-            if (verifiedRole && message.member.roles.cache.has(verifiedRole.id)) return true;
+            if (hasRoleSetting(message, message.settings.verifiedRole)) return true;
           } catch (e) {
             return false;
           }
@@ -83,8 +108,7 @@ const config = {
       name: "Verified",
       check: (message) => {
         try {
-          const verifiedRole = message.guild.roles.find(r => r.name.toLowerCase() === message.settings.verifiedRole.toLowerCase());
-          if (verifiedRole && message.member.roles.cache.has(modRole.id)) return true;
+          if (hasRoleSetting(message, message.settings.verifiedRole)) return true;
         } catch (e) {
           return false;
         }
@@ -101,8 +125,7 @@ const config = {
       // If they don't then return false, which will prevent them from executing the command.
       check: (message) => {
         try {
-          const modRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === message.settings.modRole.toLowerCase());
-          if (modRole && message.member.roles.cache.has(modRole.id)) return true;
+          if (hasRoleSetting(message, message.settings.modRole)) return true;
         } catch (e) {
           return false;
         }
@@ -113,8 +136,7 @@ const config = {
       name: "Administrator", 
       check: (message) => {
         try {
-          const adminRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === message.settings.adminRole.toLowerCase());
-          return (adminRole && message.member.roles.cache.has(adminRole.id));
+          return hasRoleSetting(message, message.settings.adminRole);
         } catch (e) {
           return false;
         }

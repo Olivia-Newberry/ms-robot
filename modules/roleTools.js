@@ -7,13 +7,17 @@
 //   roleManagerRoles   role IDs whose holders may run the commands
 //   assignableRoles    role IDs the commands may hand out
 
+import { PermissionFlagsBits } from "discord.js";
 import { error } from "./Logger.js";
+import { describeRole } from "./roleMatch.js";
 
 // A setting holds space separated role IDs. It reads as "false" once a list has been
 // emptied, and is simply absent on a server that has never been set up, so both of
 // those have to count as nothing.
 export function idList(value) {
-  if (!value || value === "false") return [];
+  // Older versions of the bot sometimes saved these lists as arrays.
+  if (Array.isArray(value)) value = value.join(" ");
+  if (typeof value !== "string" || value === "false") return [];
   return value.split(" ").filter(id => id.length > 0);
 }
 
@@ -21,7 +25,7 @@ export function idList(value) {
 export function findProblem(interaction, member, role, action) {
   const managerRoles = idList(interaction.settings.roleManagerRoles);
   const assignableRoles = idList(interaction.settings.assignableRoles);
-  const me = interaction.guild.me;
+  const me = interaction.guild.members.me;
 
   if (!managerRoles.length || !assignableRoles.length)
     return "This server hasn't set up role commands yet. Someone with Manage Roles needs to run /roleconfig first.";
@@ -35,19 +39,19 @@ export function findProblem(interaction, member, role, action) {
     return "I couldn't find that person in this server.";
 
   if (!assignableRoles.includes(role.id))
-    return `\`${role.name}\` isn't on this server's list of assignable roles.`;
+    return `${describeRole(role)} isn't on this server's list of assignable roles.`;
 
   // Discord would reject these itself, but with nothing the caller can act on.
-  if (!me.permissions.has("MANAGE_ROLES"))
+  if (!me.permissions.has(PermissionFlagsBits.ManageRoles))
     return "I'm missing the **Manage Roles** permission on this server.";
   if (role.comparePositionTo(me.roles.highest) >= 0)
-    return `I can't manage \`${role.name}\`, it sits at or above my own highest role.`;
+    return `I can't manage ${describeRole(role)}, it sits at or above my own highest role.`;
 
   const hasRole = member.roles.cache.has(role.id);
   if (action === "add" && hasRole)
-    return `${member.user.tag} already has \`${role.name}\`.`;
+    return `${member.user.tag} already has ${describeRole(role)}.`;
   if (action === "remove" && !hasRole)
-    return `${member.user.tag} doesn't have \`${role.name}\`.`;
+    return `${member.user.tag} doesn't have ${describeRole(role)}.`;
 
   return null;
 }
@@ -59,12 +63,13 @@ export function findProblem(interaction, member, role, action) {
 export async function logRoleChange(interaction, member, role, description) {
   const name = interaction.settings.modLogChannel;
   try {
-    const channel = interaction.guild.channels.cache.find(c => c.name === name && c.isText());
+    const channel = interaction.guild.channels.cache.find(c => c.name === name && c.isTextBased());
     if (!channel) {
       return error(`No #${name} channel in ${interaction.guild.name}, role change not logged.`);
     }
     await channel.send({
-      content: `${interaction.user.tag} ${description} (${member.user.tag}, \`${role.name}\`)`,
+      // The role's ID too, so the log says which of several same-looking roles it was.
+      content: `${interaction.user.tag} ${description} (${member.user.tag}, ${describeRole(role)})`,
       allowedMentions: { parse: [] },
     });
   } catch (e) {
