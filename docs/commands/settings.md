@@ -25,7 +25,7 @@ arrows.
 
 **Edit** opens a form filled in with the current values:
 
-- checkboxes for on/off settings,
+- checkboxes for on/off settings, and dropdowns for settings with fixed choices,
 - channel and role pickers for channels and roles (role settings can hold several),
 - text boxes for the rest.
 
@@ -83,6 +83,7 @@ start; remove them from `config.js` instead.
 | `selfTimeout` | Whether members can use `/timeout` on themselves |
 | `modRole`, `adminRole` | Roles that give the Moderator / Administrator level |
 | `verifiedRole` | Verified roles, or `false` if the server has none |
+| `rolePanelAccess` | Who can set up role panels: `administrator` (default) or `moderator` |
 | `welcomeEnabled`, `welcomeChannel`, `welcomeMessage` | Welcome messages; `{{user}}` is replaced with the new member |
 | `modLogChannel` | Channel name where `/addrole` and `/removerole` are logged |
 | `messageLogChannel`, `messageLogIgnore` | See [message-log.md](message-log.md) |

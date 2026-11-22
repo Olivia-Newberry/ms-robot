@@ -14,7 +14,7 @@ import { resolveRoles } from "./roleMatch.js";
 
 const PAGES = [
   { title: "General", keys: ["prefix", "commandReply", "systemNotice", "selfTimeout"] },
-  { title: "Roles", keys: ["modRole", "adminRole", "verifiedRole"] },
+  { title: "Roles", keys: ["modRole", "adminRole", "verifiedRole", "rolePanelAccess"] },
   { title: "Welcome", keys: ["welcomeEnabled", "welcomeChannel", "welcomeMessage"] },
   { title: "Logging", keys: ["modLogChannel", "messageLogChannel", "messageLogIgnore"] },
   { title: "Reactions", keys: ["minecraftReactChance", "selfieReact"] },
@@ -25,6 +25,13 @@ const OFF = ["false", "off", "none", "no", ""];
 
 const TYPES = {
   text: (raw) => ({ value: raw }),
+  // One of a fixed set of values (`choices` in the schema), shown as a dropdown in the
+  // form. `aliases` are other words /set accepts for them.
+  choice: (raw, guild, { choices, aliases = {} }) => {
+    const v = raw.toLowerCase();
+    const value = v in choices ? v : aliases[v];
+    return value ? { value } : { error: `must be one of: ${Object.keys(choices).join(", ")}` };
+  },
   bool: (raw) => {
     const v = raw.toLowerCase();
     if (["true", "yes", "on", "1"].includes(v)) return { value: "true" };
@@ -89,6 +96,11 @@ const SCHEMA = {
   modRole: { label: "Moderator roles", type: "role", hint: "Members with any of these get the Moderator level" },
   adminRole: { label: "Administrator roles", type: "role", hint: "Members with any of these get the Administrator level" },
   verifiedRole: { label: "Verified roles", type: "role", hint: "Leave empty if the server has none", none: "false" },
+  rolePanelAccess: {
+    label: "Who can set up role panels", type: "choice", hint: "Server owner and bot admins always can",
+    choices: { administrator: "Administrator roles", moderator: "Moderator and Administrator roles" },
+    aliases: { admin: "administrator", admins: "administrator", mod: "moderator", mods: "moderator" },
+  },
   welcomeEnabled: { label: "Welcome new members", type: "bool", hint: "true or false" },
   welcomeChannel: { label: "Welcome channel", type: "channelName", hint: "Where welcome messages are posted" },
   welcomeMessage: { label: "Welcome message", type: "text", hint: "{{user}} is replaced with the new member", paragraph: true, max: 2000 },
@@ -117,7 +129,7 @@ export function normalize(key, raw, guild) {
   const { type, max = 100 } = describe(key);
   const trimmed = raw.trim();
   if (trimmed.length > max) return { error: `can be at most ${max} characters` };
-  return TYPES[type](trimmed, guild);
+  return TYPES[type](trimmed, guild, describe(key));
 }
 
 // Makes stored IDs readable in the panel.
@@ -128,5 +140,6 @@ export function display(key, value) {
   // Names saved by older versions are shown as they are.
   if (type === "role" && /^[\d,\s]+$/.test(value)) return value.split(/[\s,]+/).filter(Boolean).map(id => `<@&${id}> (\`${id}\`)`).join(", ");
   if (type === "percent") return `${value}%`;
+  if (type === "choice") return describe(key).choices[value] ?? value;
   return value.length > 200 ? `${value.slice(0, 200)}…` : value;
 }

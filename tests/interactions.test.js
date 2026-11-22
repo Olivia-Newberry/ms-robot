@@ -126,3 +126,14 @@ test("/settings: the role picker takes several roles and saves their IDs", async
   await click("setmenu:save:999:1", owner, { fields: new ModalSubmitFields([picked]) });
   assert.equal(getSettings("g1").verifiedRole, B);
 });
+
+test("/settings: who can set up role panels is a dropdown", async () => {
+  const form = (await click("setmenu:edit:999:1", owner)).replies[0].payload.toJSON();
+  const access = form.components.find(l => l.component.custom_id === "rolePanelAccess").component;
+  assert.equal(access.type, ComponentType.StringSelect);
+  assert.deepEqual(access.options.filter(o => o.default).map(o => o.value), ["administrator"]);
+
+  const picked = { type: ComponentType.Label, component: { type: ComponentType.StringSelect, customId: "rolePanelAccess", values: ["moderator"] } };
+  await click("setmenu:save:999:1", owner, { fields: new ModalSubmitFields([picked]) });
+  assert.equal(getSettings("g1").rolePanelAccess, "moderator");
+});

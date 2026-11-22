@@ -12,6 +12,7 @@
 
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelSelectMenuBuilder, ChannelType, CheckboxBuilder, LabelBuilder,
+  StringSelectMenuOptionBuilder,
   ModalBuilder, RoleSelectMenuBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle,
 } from "discord.js";
 import { componentId } from "./components.js";
@@ -81,6 +82,10 @@ function fieldFor(guild, key, value) {
   switch (type) {
     case "bool":
       return ["setCheckboxComponent", new CheckboxBuilder().setCustomId(key).setDefault(value === "true")];
+    case "choice":
+      return ["setStringSelectMenuComponent", new StringSelectMenuBuilder().setCustomId(key).setRequired(false).addOptions(
+        Object.entries(describe(key).choices).map(([choice, label]) => new StringSelectMenuOptionBuilder().setLabel(label).setValue(choice).setDefault(choice === value)),
+      )];
     case "channelId":
     case "channelIds": {
       const picker = new ChannelSelectMenuBuilder().setCustomId(key).setRequired(false).setMinValues(0)
@@ -136,6 +141,9 @@ function submitted(fields, key, guild) {
   switch (type) {
     case "bool":
       return { value: String(fields.getCheckbox(key)) };
+    case "choice":
+      // Nothing picked means the default, like clearing a text box.
+      return { value: fields.getStringSelectValues(key)?.[0] ?? undefined };
     case "channelId":
     case "channelIds": {
       const ids = [...(fields.getSelectedChannels(key)?.keys() ?? [])];

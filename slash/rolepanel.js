@@ -7,9 +7,12 @@
 //   /rolepanel list
 //   /rolepanel delete  panel
 //
-// Needs Manage Roles, checked in run() like /roleconfig.
+// Who can use it is a server setting (rolePanelAccess): the Administrator level by
+// default, or the Moderator level and up. It's checked in run() rather than through
+// conf.permLevel, which is the same for every server.
 
 import { ApplicationCommandOptionType as T, ChannelType, MessageFlags, PermissionFlagsBits } from "discord.js";
+import { permlevel } from "../modules/functions.js";
 import { checkEmoji, deletePanel, getPanel, MAX_ROLES, newPanel, panelsIn, publish, roleProblem, savePanel } from "../modules/rolePanels.js";
 import { lookalikeWarning, roleChoices, roleFromOption } from "../modules/roleMatch.js";
 
@@ -28,8 +31,9 @@ function missingPermissions(channel, me, style) {
 
 export async function run(client, interaction) {
   const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
-  if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles))
-    return reply("You need the **Manage Roles** permission to manage role panels.");
+  const level = interaction.settings.rolePanelAccess === "moderator" ? "Moderator" : "Administrator";
+  if (permlevel(interaction) < client.container.levelCache[level])
+    return reply(`Setting up role panels needs the ${level} level (a role in this server's \`${level === "Moderator" ? "modRole" : "adminRole"}\` setting).`);
 
   const sub = interaction.options.getSubcommand();
   if (sub === "list") {
@@ -138,7 +142,8 @@ const modeChoices = [{ name: "Pick one (choosing another swaps it)", value: "sin
 export const commandData = {
   name: "rolepanel",
   description: "Set up messages members use to pick their own roles.",
-  defaultMemberPermissions: PermissionFlagsBits.ManageRoles,
+  // Not hidden behind a Discord permission: moderators may be allowed to use it without
+  // having Manage Roles themselves (the bot does the role changes).
   options: [
     {
       name: "create", description: "Post a new role panel", type: T.Subcommand, options: [

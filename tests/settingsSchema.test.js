@@ -52,3 +52,9 @@ test("every form page fits Discord's 5-field limit, and custom keys get their ow
   assert.ok(pages.every(p => p.keys.length <= 5));
   assert.deepEqual(pages.filter(p => p.title.startsWith("Other")).flatMap(p => p.keys), ["a", "b", "c", "d", "e", "f"]);
 });
+
+test("choice settings accept their values and aliases", () => {
+  assert.deepEqual(normalize("rolePanelAccess", "Moderator"), { value: "moderator" });
+  assert.deepEqual(normalize("rolePanelAccess", "admins"), { value: "administrator" });
+  assert.match(normalize("rolePanelAccess", "everyone").error, /administrator, moderator/);
+});

@@ -1,7 +1,12 @@
 # Role panels
 
-A role panel is a message members use to give themselves roles. Setting one up needs
-Manage Roles.
+A role panel is a message members use to give themselves roles.
+
+Setting panels up needs the Administrator level (a role in the `adminRole` setting), or
+the Moderator level and up if the server's `rolePanelAccess` setting is `moderator`. The
+server owner and bot admins always can. Change it on the Roles page of `/settings`, or
+with `/set edit key:rolePanelAccess value:moderator`. Moderators don't need Manage Roles
+themselves; the bot makes the role changes.
 
 ```txt
 /rolepanel create title:Colours style:Buttons mode:Pick one channel:#roles

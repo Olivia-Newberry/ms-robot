@@ -59,7 +59,8 @@ const channel = {
 };
 const admin = makeUser("1", "admin"), alice = makeUser("2", "alice");
 const guild = {
-  id: "g1", name: "Test", ownerId: "0", roles: { cache: roles }, channels: { cache: new Collection([["c1", channel]]) },
+  // The admin is the server owner, which is above the Administrator level panels need.
+  id: "g1", name: "Test", ownerId: "1", roles: { cache: roles }, channels: { cache: new Collection([["c1", channel]]) },
   members: { me: { permissions: { has: () => true }, roles: { highest: role("me") } } },
 };
 const members = { [admin.id]: makeMember(admin, [id("owner")]), [alice.id]: makeMember(alice) };
@@ -95,9 +96,7 @@ test("creating a panel posts it; roles are checked before they're added", async 
   assert.match(await rolepanel("add", { panel: panel.id, role: id("artist"), emoji: "not an emoji" }), /isn't a single emoji/);
   assert.match(await rolepanel("add", { panel: panel.id, role: id("artist"), emoji: "<:other:123456789012345678>" }), /servers I'm in/);
   assert.match(await rolepanel("add", { panel: panel.id, role: id("artist"), requires: id("artist") }), /require itself/);
-  members[alice.id].permissions.has = () => false;
-  assert.match(await rolepanel("add", { panel: panel.id, role: id("red") }, alice), /Manage Roles/);
-  members[alice.id].permissions.has = () => true;
+  assert.match(await rolepanel("add", { panel: panel.id, role: id("red") }, alice), /needs the Administrator level/);
 
   const buttons = posted[0].payload.components.flatMap(r => r.toJSON().components);
   assert.deepEqual(buttons.map(b => b.label), ["Red", "Blue team"]);
@@ -209,4 +208,18 @@ test("deleting a panel removes its message; its old buttons say so", async () =>
   assert.match(await rolepanel("delete", { panel: panel.id }), /Deleted/);
   assert.equal(getPanel(panel.id), null);
   assert.match(await press(panel, id("artist")), /deleted/);
+});
+
+// ---------------------------------------------------------------- who can set up panels
+test("moderators can manage panels only when the server allows it", async () => {
+  const { settings } = await import("../modules/settings.js");
+  const mod = makeUser("3", "mod");
+  members[mod.id] = makeMember(mod, [id("mod")]);
+  members[mod.id].guild = guild;
+  settings.set("g1", { modRole: id("mod") });
+  assert.match(await rolepanel("list", {}, mod), /needs the Administrator level/);
+
+  settings.set("g1", { modRole: id("mod"), rolePanelAccess: "moderator" });
+  assert.doesNotMatch(await rolepanel("list", {}, mod), /needs the/);
+  assert.match(await rolepanel("list", {}, alice), /needs the Moderator level/, "members still can't");
 });

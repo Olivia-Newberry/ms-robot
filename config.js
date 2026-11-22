@@ -78,7 +78,8 @@ const config = {
     "messageLogIgnore": "false",
     "minecraftReactChance": "100", // % of messages mentioning minecraft that get a reaction; 0 turns it off. /reactions
     "selfieReact": "true", // React to pictures in selfie channels. /reactions
-    "selfTimeout": "true" // Let members use /timeout on themselves.
+    "selfTimeout": "true", // Let members use /timeout on themselves.
+    "rolePanelAccess": "administrator" // Who can set up role panels: "administrator" or "moderator".
   },
 
   // PERMISSION LEVEL DEFINITIONS.
