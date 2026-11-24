@@ -220,6 +220,6 @@ test("moderators can manage panels only when the server allows it", async () => 
   assert.match(await rolepanel("list", {}, mod), /needs the Administrator level/);
 
   settings.set("g1", { modRole: id("mod"), rolePanelAccess: "moderator" });
-  assert.doesNotMatch(await rolepanel("list", {}, mod), /needs the/);
+  assert.doesNotMatch(JSON.stringify(await rolepanel("list", {}, mod)), /needs the/);
   assert.match(await rolepanel("list", {}, alice), /needs the Moderator level/, "members still can't");
 });

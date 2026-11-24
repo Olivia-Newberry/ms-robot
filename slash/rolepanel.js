@@ -15,6 +15,7 @@ import { ApplicationCommandOptionType as T, ChannelType, MessageFlags, Permissio
 import { permlevel } from "../modules/functions.js";
 import { checkEmoji, deletePanel, getPanel, MAX_ROLES, newPanel, panelsIn, publish, roleProblem, savePanel } from "../modules/rolePanels.js";
 import { lookalikeWarning, roleChoices, roleFromOption } from "../modules/roleMatch.js";
+import { listMessages } from "../modules/embedPages.js";
 
 // Reactions need these on top of sending; Manage Messages lets the bot tidy up stray
 // reactions and swap them in pick-one panels, but panels work without it.
@@ -39,7 +40,14 @@ export async function run(client, interaction) {
   if (sub === "list") {
     const list = panelsIn(interaction.guildId);
     if (!list.length) return reply("This server has no role panels yet. Make one with `/rolepanel create`.");
-    return reply(list.map(p => `**${p.title}** · ${p.roles.length} role${p.roles.length === 1 ? "" : "s"} · ${p.style}, ${p.mode === "single" ? "pick one" : "pick any"} · ${p.messageId ? `https://discord.com/channels/${p.guildId}/${p.channelId}/${p.messageId}` : "not posted"}`).join("\n"));
+    // Split over as many embeds and messages as needed; one message held about 13 panels.
+    const [first, ...rest] = listMessages([{
+      title: `Role panels (${list.length})`,
+      lines: list.map(p => `**${p.title}** · ${p.roles.length} role${p.roles.length === 1 ? "" : "s"} · ${p.style}, ${p.mode === "single" ? "pick one" : "pick any"} · ${p.messageId ? `https://discord.com/channels/${p.guildId}/${p.channelId}/${p.messageId}` : "not posted"}`),
+    }]);
+    await interaction.reply({ ...first, flags: MessageFlags.Ephemeral });
+    for (const message of rest) await interaction.followUp({ ...message, flags: MessageFlags.Ephemeral });
+    return;
   }
 
   if (sub === "create") {

@@ -17,6 +17,7 @@
 // admin role something else.
 
 import { ApplicationCommandOptionType, MessageFlags, PermissionFlagsBits } from "discord.js";
+import { listMessages } from "../modules/embedPages.js";
 import { settings } from "../modules/settings.js";
 import { idList } from "../modules/roleTools.js";
 import { describeRole, lookalikeWarning, roleChoices, roleFromOption } from "../modules/roleMatch.js";
@@ -37,13 +38,13 @@ function save(interaction, key, ids) {
   settings.set(interaction.guild.id, ids.length ? ids.join(" ") : "false", key);
 }
 
-// An ID with no matching role means the role was deleted since it was configured.
+// One line per role. An ID with no matching role means the role was deleted since it
+// was configured.
 function describe(interaction, ids) {
-  if (!ids.length) return "_none_";
   return ids.map(id => {
     const role = interaction.guild.roles.cache.get(id);
     return role ? describeRole(role) : `\`${id}\` (deleted role)`;
-  }).join(", ");
+  });
 }
 
 export async function run(client, interaction) { // eslint-disable-line no-unused-vars
@@ -55,10 +56,15 @@ export async function run(client, interaction) { // eslint-disable-line no-unuse
   if (interaction.options.getSubcommand() === "list") {
     const assignable = idList(interaction.settings.assignableRoles);
     const managers = idList(interaction.settings.roleManagerRoles);
-    return reply([
-      `**Can be assigned** (${assignable.length}): ${describe(interaction, assignable)}`,
-      `**Can use the commands** (${managers.length}): ${describe(interaction, managers)}`,
-    ].join("\n\n"));
+    // A server can configure any number of roles, so this is split over as many embeds
+    // and messages as it takes (a single message used to fail past about 40 roles).
+    const [first, ...rest] = listMessages([
+      { title: `Can be assigned (${assignable.length})`, lines: describe(interaction, assignable) },
+      { title: `Can use the commands (${managers.length})`, lines: describe(interaction, managers) },
+    ]);
+    await interaction.reply({ ...first, flags: MessageFlags.Ephemeral });
+    for (const message of rest) await interaction.followUp({ ...message, flags: MessageFlags.Ephemeral });
+    return;
   }
 
   if (interaction.options.getString("confirm") !== CONFIRMATION)

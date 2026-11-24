@@ -24,7 +24,11 @@ export async function run(client, interaction) { // eslint-disable-line no-unuse
     const ids = idList(current[key]);
     return ids.length ? ids.map(id => `<@&${id}>`).join(" ") : "*none*";
   };
-  fields.push({ name: "Role commands", value: Object.entries(ROLE_LISTS).map(([key, label]) => `${label}: ${roles(key)}`).join("\n") });
+  // An embed field holds 1,024 characters, about 40 role mentions. Past that, the counts
+  // are shown and /roleconfig list (which pages through any number) has the full lists.
+  const roleLines = Object.entries(ROLE_LISTS).map(([key, label]) => `${label}: ${roles(key)}`).join("\n");
+  fields.push({ name: "Role commands", value: roleLines.length <= 1024 ? roleLines
+    : `${Object.entries(ROLE_LISTS).map(([key, label]) => `${label}: ${idList(current[key]).length} roles`).join("\n")}\nToo many to show here; \`/roleconfig list\` shows them all.` });
 
   await interaction.reply({
     embeds: [{
