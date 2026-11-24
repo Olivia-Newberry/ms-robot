@@ -4,7 +4,7 @@
 |---|---|
 | `/help` | Lists the commands you can use where you are |
 | `/ping` | Response and API latency |
-| `/stats` | Uptime, members (people and bots), servers, channels. The bot owner also sees memory use and versions. |
+| `/stats` | Uptime, members (people and bots), servers, channels. Bot support, bot admins and the bot owner also see memory use and its limit, the message cache, the server's memory and uptime, and versions. |
 | `/botinfo` | GitHub and invite links |
 | `/mylevel` | Your permission level in this server |
 | `/leave` | Removes you from the server, after a DM saying you can rejoin |

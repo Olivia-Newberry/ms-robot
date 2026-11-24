@@ -51,7 +51,7 @@ test("/set edit checks values, and reset asks for confirmation that only the ask
 
 test("setting names autocomplete", async () => {
   const i = await run("set", owner, { focused: "mess" });
-  assert.deepEqual(i.replies[0].payload.map(c => c.name), ["welcomeMessage", "messageLogChannel", "messageLogIgnore"]);
+  assert.deepEqual(i.replies[0].payload.map(c => c.name), ["welcomeMessage", "messageLogChannel", "messageLogIgnore", "verificationHelpMessage"]);
 });
 
 test("/settings: pages, a pre-filled form with pickers, and saving it", async () => {
@@ -80,8 +80,28 @@ test("/reactions needs Manage Server and saves a percentage", async () => {
   guild.members.cache.get("111").permissions.has = () => true;
 });
 
-test("/stats shows version details to the owner only", async () => {
+test("/stats shows version and cache details to bot support, admins and the owner only", async () => {
+  const config = (await import("../config.js")).default;
+  const support = makeUser("444", "support"), admin = makeUser("555", "botadmin");
+  guild.members.cache.set(support.id, makeMember(support));
+  guild.members.cache.set(admin.id, makeMember(admin));
+  config.support.push(support.id);
+  config.admins.push(admin.id);
+  for (const user of [support, admin]) {
+    const full = (await run("stats", user)).last;
+    assert.match(full, /Msg Cache/, user.username);
+    assert.match(full, /Server {5}:: [\d.,]+ [MG]B available of [\d.,]+ [MG]B \(\d+% used\)/);
+    assert.match(full, /Mem Usage {2}:: [\d.,]+ [MG]B \(whole process [\d.,]+ [MG]B\)/);
+    assert.match(full, /Server Up {2}:: \d+ \w+/);
+    assert.match(full, /Mem Limit {2}:: [\d.,]+ [MG]B \((Node's default|from NODE_OPTIONS|\d+% of RAM, from config\.js)\)/);
+    assert.match(full, /Discord\.js/);
+  }
+  config.support.pop();
+  config.admins.pop();
+
   const forMember = (await run("stats", member)).last, forOwner = (await run("stats", owner)).last;
+  assert.doesNotMatch(forMember, /Msg Cache/);
+  assert.doesNotMatch(forMember, /Server Up/);
   assert.match(forMember, /Uptime/);
   assert.match(forMember, /People {5}:: 1\n• Bots {7}:: 1/);
   assert.doesNotMatch(forMember, /Discord\.js|Node/);

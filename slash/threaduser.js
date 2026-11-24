@@ -11,9 +11,9 @@ export async function run(client, interaction) {
 
   const user = await client.users.fetch(userId).catch(() => null);
   if (!user) return interaction.editReply(`Thread userID = ${userId}, but I couldn't find that user.`);
-  const { member, messages } = await lookUp(client, interaction.guild, user);
+  const { member, messages, ban } = await lookUp(client, interaction.guild, user);
   const ctx = { guild: interaction.guild, settings: interaction.settings, requester: interaction.user };
-  await interaction.editReply({ content: `Thread userID = ${userId}\nTag = <@${userId}>`, embeds: [userInfoEmbed(ctx, user, member, messages)] });
+  await interaction.editReply({ content: `Thread userID = ${userId}\nTag = <@${userId}>`, embeds: [userInfoEmbed(ctx, user, member, messages, { ban })] });
 }
 
 export const commandData = {

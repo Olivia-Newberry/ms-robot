@@ -6,20 +6,28 @@
 const [major, minor] = process.versions.node.split(".").map(Number);
 if (major < 20 || (major === 20 && minor < 11)) throw new Error("Node 20.11 or higher is required. Update Node on your system.");
 import "dotenv/config";
+// Sets Node's memory limit from config.js (nodeHeapPercent), which may restart the
+// process in place, so it goes before anything opens the database.
+import "./modules/applyNodeHeap.js";
 
 // Load up the discord.js library
-import { Client, Collection } from "discord.js";
+import { Client, Collection, Options } from "discord.js";
 import { readdirSync } from "fs";
 
 //import { intents, partials, permLevels } from "./config.js";
 import config from "./config.js";
 
 import * as logger from "./modules/Logger.js";
-import { setClient, shutdown } from "./modules/lifecycle.js";
+import { loginWithRetry, setClient } from "./modules/lifecycle.js";
 // This is your client. Some people call it `bot`, some people call it `self`,
 // some might call it `cootchie`. Either way, when you see `client.something`,
 // or `bot.something`, this is what we're referring to. Your client.
-const client = new Client({ intents: config.intents, partials: config.partials });
+const client = new Client({
+  intents: config.intents,
+  partials: config.partials,
+  // Per-channel cap only; the shared budget is enforced by modules/messageCache.js.
+  makeCache: Options.cacheWithLimits({ ...Options.DefaultMakeCacheSettings, MessageManager: config.messageCache.perChannel }),
+});
 setClient(client);
 
 // Aliases, commands and slash commands are put in collections where they can be
@@ -113,18 +121,10 @@ const init = async () => {
     client.on(eventName, event.default.bind(null, client));
   }  
 
-  // Threads are currently in BETA.
-  // This event will fire when a thread is created, if you want to expand
-  // the logic, throw this in it's own event file like the rest.
-  client.on("threadCreate", (thread) => thread.join());
-
   // Here we login the client.
-  // Exiting lets the service manager retry. Otherwise a bad token or a Discord outage
-  // at startup leaves the process running but offline, and nothing restarts it.
-  client.login(process.env.TOKEN).catch(e => {
-    logger.error(`Couldn't log in to Discord: ${e.message}`);
-    shutdown(1, "Login failed");
-  });
+  // Retried while Discord is unreachable; a wrong token or missing intents exit
+  // (see modules/lifecycle.js).
+  loginWithRetry(client, process.env.TOKEN);
 
 // End top-level async/await function.
 };

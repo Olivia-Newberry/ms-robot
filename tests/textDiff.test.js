@@ -50,3 +50,11 @@ test("long messages keep context near the change and say what was left out", () 
 test("line diff for the attached file", () => {
   assert.equal(lineDiff("a\nb\nc", "a\nB\nc"), "  a\n- b\n+ B\n  c");
 });
+
+test("small punctuation changes get a visible label too", () => {
+  assert.equal(renderDiff("lol", "lol.").text, "lol__**[+ .]**__");
+  assert.equal(renderDiff("really?", "really?!").text, "really?__**[+ !]**__");
+  assert.equal(renderDiff("wait...", "wait").text, "wait~~[− ...]~~");
+  // Words still use plain strikethrough/underline, which show up fine.
+  assert.equal(renderDiff("hi there", "hi there friend").text, "hi there __**friend**__");
+});

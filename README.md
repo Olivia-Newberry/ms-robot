@@ -13,14 +13,18 @@ npm ci
 npm start
 ```
 
-Create `.env`:
+Copy `.env.example` to `.env` and fill it in. `TOKEN` and `OWNER` are required; the
+rest are optional, and each one explains itself:
 
-```txt
-TOKEN=bot token
-OWNER=your Discord user ID (gets the Bot Owner level: /eval, /deploy)
-GIPHY_API_KEY=key for /gif
-MESSAGE_CONTENT_INTENT=true   (only once that intent is enabled, see below)
-```
+- `GIPHY_API_KEY` for `/gif`, and `MESSAGE_CONTENT_INTENT` (see below).
+- `ALLOWED_BOTS`, `MOD_THREAD_SKIP_IDS` and `MONITOR_SERVICES` for working alongside
+  other bots, such as a modmail bot.
+- `VERIFICATION_*` only to carry an older setup of the `!verification` hand-off into
+  `/settings` once; new servers set it up in `/settings` directly.
+
+These are deployment details (IDs, service names), so they live in `.env` rather than
+the code. `config.js` reads them. Anything a server might want differently goes in
+`/settings` instead.
 
 In the Discord Developer Portal, under the bot's **Privileged Gateway Intents**:
 

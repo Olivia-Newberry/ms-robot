@@ -131,11 +131,17 @@ function wrap(text, open, close) {
 const DEL = (text) => wrap(text, "~~", "~~");
 const INS = (text) => wrap(text, "__**", "**__");
 
-// Strikethrough and underline don't show on emoji, so a change that is only emoji gets
-// a visible label as well: ~~[− 🙂]~~ and __**[+ 😀]**__.
+// Strikethrough and underline don't show on emoji, and are near invisible on a lone
+// full stop or comma, so a change that is only emoji, or only a few punctuation marks,
+// gets a visible label as well: ~~[− 🙂]~~ and __**[+ .]**__.
 const isEmojiOnly = (tokens) => tokens.some(t => t.trim()) && tokens.every(t => !t.trim() || EMOJI_ONLY.test(t));
-const markDel = (tokens) => isEmojiOnly(tokens) ? wrap(escapeAll(tokens), "~~[− ", "]~~") : DEL(escapeAll(tokens));
-const markIns = (tokens) => isEmojiOnly(tokens) ? wrap(escapeAll(tokens), "__**[+ ", "]**__") : INS(escapeAll(tokens));
+const isSmallPunctuation = (tokens) => {
+  const visible = tokens.filter(t => t.trim()).join("");
+  return visible.length > 0 && visible.length <= 3 && !/[\p{L}\p{N}]/u.test(visible);
+};
+const needsLabel = (tokens) => isEmojiOnly(tokens) || isSmallPunctuation(tokens);
+const markDel = (tokens) => needsLabel(tokens) ? wrap(escapeAll(tokens), "~~[− ", "]~~") : DEL(escapeAll(tokens));
+const markIns = (tokens) => needsLabel(tokens) ? wrap(escapeAll(tokens), "__**[+ ", "]**__") : INS(escapeAll(tokens));
 
 function renderChange(hunk, limit = Infinity) {
   let del = escapeAll(hunk.del), ins = escapeAll(hunk.ins);

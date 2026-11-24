@@ -24,8 +24,10 @@ Both use custom emoji from one particular server. In other servers, the bot need
 
 - "ms robot test" / "anyone listening?" → "I'm listening!"
 - "hi ms robot" → a greeting.
-- `!verification` (only in server 438306949285806082, where that verification flow
-  exists) → hands off to the verification bot, or points newcomers to the sticky message.
+- `!verification` → sends the server's verification bot command (e.g. `!!verify`), or in
+  the server's help channels (and their threads) replies with the server's help message
+  instead. Set up per server in `/settings`, Verification page; off until the command
+  is set.
 
 ## Old prefix commands
 

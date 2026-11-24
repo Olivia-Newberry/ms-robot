@@ -8,9 +8,18 @@
 
 import { error } from "./Logger.js";
 
-export async function cacheMembers(guilds) {
+// Discord allows one full member-list request per server about every 30 seconds. If
+// one is refused for that, it's tried once more after the wait Discord asks for.
+export async function cacheMembers(guilds, { sleep = (ms) => new Promise(r => setTimeout(r, ms)) } = {}) {
   for (const guild of guilds) {
-    await guild.members.fetch().catch(e => error(`Couldn't load the member list for ${guild.name}: ${e.message}`));
+    try {
+      await guild.members.fetch();
+    } catch (e) {
+      const retryAfter = e.name === "GatewayRateLimitError" ? e.data?.retry_after : null;
+      if (!retryAfter) { error(`Couldn't load the member list for ${guild.name}: ${e.message}`); continue; }
+      await sleep(retryAfter * 1000 + 500);
+      await guild.members.fetch().catch(err => error(`Couldn't load the member list for ${guild.name}: ${err.message}`));
+    }
   }
 }
 

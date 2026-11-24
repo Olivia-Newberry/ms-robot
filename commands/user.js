@@ -10,17 +10,24 @@ import { findUser, isModThread, lookUp, threadUserId, userInfoEmbed } from "../m
 export async function run(client, message, args, level) { // eslint-disable-line no-unused-vars
   const ctx = { guild: message.guild, settings: message.settings, requester: message.author };
   // Only the thread line's "Tag = <@id>" may ping, as it always has.
-  const send = async (user, content, ping = []) => {
-    const { member, messages } = await lookUp(client, message.guild, user);
-    return message.channel.send({ content, embeds: [userInfoEmbed(ctx, user, member, messages)], allowedMentions: { users: ping } });
+  const send = async (user, content, ping = [], { fromBans = false } = {}) => {
+    const { member, messages, ban } = await lookUp(client, message.guild, user);
+    return message.channel.send({ content, embeds: [userInfoEmbed(ctx, user, member, messages, { ban, fromBans })], allowedMentions: { users: ping } });
   };
 
   if (args[0]) {
     // "@bot user @someone" mentions the bot too, as the prefix; that isn't who to look up.
     const mentioned = message.mentions.users.find(u => u.id !== client.user.id);
-    const user = await findUser(client, message.guild, args.join(" "), mentioned);
-    if (!user) return message.channel.send("I couldn't find a matching member");
-    return send(user);
+    const query = args.join(" ");
+    const { user, fromBans, matches } = await findUser(client, message.guild, query, mentioned);
+    if (matches) {
+      const list = matches.map(u => `• ${u.tag} \`${u.id}\``).join("\n");
+      return message.channel.send({ content: `No member of this server matches "${query}". These people banned from this server do; look one up by ID:\n${list}`, allowedMentions: { parse: [] } });
+    }
+    if (!user) {
+      return message.channel.send({ content: `No member of this server matches "${query}". If they've left, look them up by their ID instead.`, allowedMentions: { parse: [] } });
+    }
+    return send(user, undefined, [], { fromBans });
   }
 
   if (isModThread(message.channel)) {

@@ -1,7 +1,4 @@
-// The verification flow (the "!!verify" hand-off, the mossy/newcomers channels, Sora)
-// only exists in this server. Anywhere else the bot would be telling people to message
-// someone who isn't there, or triggering a bot that isn't installed.
-const VERIFICATION_SERVER = "438306949285806082";
+import { verificationReply } from "../modules/verification.js";
 
 // Settings are free text (/set can write anything), so a value that isn't a number falls
 // back to the default rather than switching the reaction off by accident.
@@ -28,15 +25,10 @@ export async function run(client, message, args, level, command) { // eslint-dis
     message.react("634294300976349194").catch(() => {});
   }
 
-  if (
-    message.guild?.id === VERIFICATION_SERVER
-    && (msgLower.includes('!verification') || msgLower.includes('! verification'))
-  ){
-    if (message.channel.name != undefined && !(['mossy','newcomers'].includes(message.channel.name.toLowerCase()))) {
-      message.channel.send('!!verify');
-    } else {
-      message.reply('Please read the sticky message or try messaging Sora');
-    }
+  if (msgLower.includes('!verification') || msgLower.includes('! verification')) {
+    const answer = verificationReply(message);
+    if (answer?.send) message.channel.send(answer.send);
+    if (answer?.reply) message.reply(answer.reply);
   }
 
   // Only a toggle, no chance: the point is that every selfie gets a reaction, to

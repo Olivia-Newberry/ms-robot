@@ -18,6 +18,7 @@ const PAGES = [
   { title: "Welcome", keys: ["welcomeEnabled", "welcomeChannel", "welcomeMessage"] },
   { title: "Logging", keys: ["modLogChannel", "messageLogChannel", "messageLogIgnore"] },
   { title: "Reactions", keys: ["minecraftReactChance", "selfieReact"] },
+  { title: "Verification", keys: ["verificationCommand", "verificationHelpChannels", "verificationHelpMessage"] },
 ];
 export const FIELDS_PER_FORM = 5;
 
@@ -109,6 +110,9 @@ const SCHEMA = {
   messageLogIgnore: { label: "Channels the message log skips", type: "channelIds", hint: "Channels or categories; empty logs everything", none: "false", max: 1000 },
   minecraftReactChance: { label: "Minecraft reaction chance (%)", type: "percent", hint: "0 to 100; 0 turns it off" },
   selfieReact: { label: "React to selfies", type: "bool", hint: "true or false" },
+  verificationCommand: { label: "Command \"!verification\" sends", type: "text", hint: "Your verification bot's command, e.g. !!verify; false turns it off", max: 100 },
+  verificationHelpChannels: { label: "Channels that get the help message", type: "channelIds", hint: "Where verification can't run; the help message is sent instead", none: "false", max: 1000 },
+  verificationHelpMessage: { label: "Help message in those channels", type: "text", hint: "e.g. Please read the sticky message or message our modmail; false sends nothing", paragraph: true, max: 2000 },
 };
 
 export const describe = (key) => SCHEMA[key] ?? { label: key.slice(0, 45), type: "text", hint: "Custom setting" };

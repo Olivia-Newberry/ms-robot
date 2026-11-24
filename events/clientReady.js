@@ -5,8 +5,9 @@ import config from "../config.js";
 import { deployCommands, describeDeploy } from "../modules/deploy.js";
 import { error, log, warn } from "../modules/Logger.js";
 import { startJobs } from "../modules/jobs.js";
-import { cacheMembers } from "../modules/memberCounts.js";
-import { migrateRoleSettings } from "../modules/settingsUi.js";
+import { prepareGuild } from "../modules/guildSetup.js";
+import { startCacheTrimming } from "../modules/messageCache.js";
+import { startThreadSweep } from "../modules/threadJoin.js";
 export default async client => {
   // Log that the bot is online.
   // The 0 start value keeps this from throwing when the bot isn't in any server yet.
@@ -26,13 +27,15 @@ export default async client => {
     warn("Message Content intent is off: message commands only work as \"@bot command\", and the message log can't see text. Set MESSAGE_CONTENT_INTENT=true once it's enabled in the Developer Portal.");
   }
 
-  // Old role settings hold names; pin them to the roles they match today.
-  for (const guild of client.guilds.cache.values()) {
-    for (const change of migrateRoleSettings(guild)) log(`Role setting in ${guild.name}: ${change}`);
-  }
+  // Keeps the message cache within its memory limits (messageCache in config.js).
+  startCacheTrimming(client, log);
+  // Joins any active thread the bot isn't in yet (see modules/threadJoin.js).
+  startThreadSweep(client);
 
-  // In the background: /stats says the bot count is still loading until this is done.
-  cacheMembers(client.guilds.cache.values());
+  // Per-server setup: role settings, member lists, recent messages (see guildSetup.js).
+  // Servers unavailable right now, e.g. during a Discord outage, get it when they come
+  // back (events/guildAvailable.js).
+  for (const guild of client.guilds.cache.values()) prepareGuild(client, guild);
 
   if (!config.giphyApiKey) warn("GIPHY_API_KEY isn't set: /gif will say it isn't set up. Add a Giphy API key to .env to enable it.");
 

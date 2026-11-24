@@ -81,7 +81,7 @@ const id = schedule("reminder", { userId, text }, { runAt: Date.now() + 60 * 60 
 - **Batching:** `maxBatch` lets a job type take several due jobs at once. While a lane
   waits on a rate limit, new jobs pile up and the next batch takes them together.
 - **Finishing:** `run` returns an array of the jobs it finished; anything else (including
-  nothing) means all of them. The rest are retried with backoff, up to 5 attempts.
+  nothing) means all of them. The rest are retried with growing waits (30 seconds up to 15 minutes) for up to a day, so they survive a Discord outage.
   `complete(job)` marks one done straight away, so a crash mid-batch doesn't repeat it.
 - **Job data** has to be plain JSON.
 

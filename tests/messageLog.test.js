@@ -1,10 +1,10 @@
 import "./setup/tempDataDir.js";   // first
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Collection } from "discord.js";
+import { Collection, SnowflakeUtil } from "discord.js";
 import { makeUser } from "./helpers.js";
 import { settings } from "../modules/settings.js";
-import { logBulkDelete, logDelete, logEdit } from "../modules/messageLog.js";
+import { flushUncachedDeletes, logBulkDelete, logDelete, logEdit } from "../modules/messageLog.js";
 import * as jobs from "../modules/jobs.js";
 test.after(() => jobs.stopJobs(0));
 
@@ -51,4 +51,23 @@ test("entries saved by the discord.js 13 version still send", async () => {
   await new Promise(r => setTimeout(r, 300));
   assert.equal(sent.length, 1);
   assert.equal(sent[0].files[0].name, "edit-9.diff");
+});
+
+test("deletes of uncached messages become one summary per channel, not an entry each", async () => {
+  sent.length = 0;
+  // A rolling delete of messages from two months ago: the bot knows only their IDs.
+  const twoMonthsAgo = Date.now() - 60 * 24 * 3600 * 1000;
+  for (let i = 0; i < 25; i++) {
+    const id = SnowflakeUtil.generate({ timestamp: twoMonthsAgo + i * 3600 * 1000 }).toString();
+    logDelete({ ...msg(id, null), partial: true, author: null });
+  }
+  await new Promise(r => setTimeout(r, 100));
+  assert.equal(sent.length, 0, "nothing posted while deletes are still coming in");
+
+  flushUncachedDeletes();   // what the 5-minute wait, or a shutdown, does
+  await new Promise(r => setTimeout(r, 300));
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].content, /\*\*Deleted\*\* 25 older messages in <#c1>/);
+  const [embed] = sent[0].embeds.map(e => e.toJSON());
+  assert.match(embed.description, /^Sent between <t:\d+:D> and <t:\d+:D>\. They were older than the bot's cache/);
 });

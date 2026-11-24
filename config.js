@@ -6,6 +6,10 @@ import { resolveRoles } from "./modules/roleMatch.js";
 // Whether the member has any of the roles a role setting lists.
 const hasRoleSetting = (message, value) => resolveRoles(message.guild, value).some(role => message.member.roles.cache.has(role.id));
 
+// Comma-separated lists from .env (see .env.example), so IDs and names that belong to one
+// deployment, like the other bots it works with, stay out of the code.
+const envList = (name) => (process.env[name] ?? "").split(",").map(s => s.trim()).filter(Boolean);
+
 const config = {
   // Bot Admins, level 9 by default. Array of user ID strings.
   "admins": [],
@@ -13,11 +17,42 @@ const config = {
   // Bot Support, level 8 by default. Array of user ID strings
   "support": [],
 
-  // Allowed bots, bots allowed to talk to bot. Array of user ID strings.
-  "allowedBots": [
-    "700002697100918935", // Sora
-    "719611772859842635", // lumina
-  ],
+  // Bots whose messages this bot acts on (the bot-to-bot automation): ALLOWED_BOTS.
+  "allowedBots": envList("ALLOWED_BOTS"),
+
+  // A bot that opens mod threads with a message containing its own ID, which isn't the
+  // member's, so /threaduser and !user skip it: MOD_THREAD_SKIP_IDS.
+  modThreadSkipIds: envList("MOD_THREAD_SKIP_IDS"),
+
+  // How many messages discord.js keeps in memory (see modules/messageCache.js). The
+  // message log can only show the original text of an edited or deleted message if it's
+  // still cached: Discord never sends the old text, and deleted messages can't be fetched.
+  //   basePerChannel  messages every channel keeps normally (200, as before 1.0).
+  //   perChannel      most one channel can hold during a burst. Messages past
+  //                   basePerChannel are the first to go in a cleanup.
+  //   hostReservePercent  share of the server's RAM to keep free (for other bots on the
+  //                   same server, surges and the OS). Below it, a quarter of the cache is dropped each check.
+  //                   A percentage, so it suits a bigger server too.
+  // The bot also trims itself when its JavaScript memory nears Node's own limit
+  // (nodeHeapPercent below).
+  //   keepPerChannel  newest messages every channel keeps through any cleanup.
+  //   refill          messages fetched at startup from each logged channel or thread
+  //                   active in the last refillWithinHours (at most 100). Quieter ones
+  //                   get keepPerChannel, since the cache holds at least that many anyway,
+  //                   and their newest messages are still the likeliest to be edited.
+  // Bot support, bot admins and the bot owner can see the cache size, the server's free
+  // memory and that of services in MONITOR_SERVICES in /stats.
+  messageCache: { basePerChannel: 200, perChannel: 1000, hostReservePercent: 30, keepPerChannel: 50, refill: 100, refillWithinHours: 72 },
+
+  // Node's JavaScript memory limit, as a percentage of the server's RAM. Node's own
+  // default is far lower than the bot could use on a small server. 70 leaves the 30%
+  // hostReservePercent for other bots on the server, surges and the OS. null keeps Node's default. Applied at
+  // startup by restarting in place (Node 22.15+); older Node logs the NODE_OPTIONS line
+  // to add to ms-robot.service instead. See modules/nodeHeap.js.
+  nodeHeapPercent: 70,
+
+  // Other services on the same server whose memory /stats shows (systemd unit names).
+  monitorServices: envList("MONITOR_SERVICES"),
 
   // Giphy key for /gif, from GIPHY_API_KEY in .env. Without it /gif says it isn't set up,
   // and the bot warns at startup.
@@ -79,7 +114,12 @@ const config = {
     "minecraftReactChance": "100", // % of messages mentioning minecraft that get a reaction; 0 turns it off. /reactions
     "selfieReact": "true", // React to pictures in selfie channels. /reactions
     "selfTimeout": "true", // Let members use /timeout on themselves.
-    "rolePanelAccess": "administrator" // Who can set up role panels: "administrator" or "moderator".
+    "rolePanelAccess": "administrator", // Who can set up role panels: "administrator" or "moderator".
+    // "!verification" hand-off to a verification bot, per server in /settings (Verification
+    // page). Off until a server sets the command. See modules/verification.js.
+    "verificationCommand": "false",
+    "verificationHelpChannels": "false",
+    "verificationHelpMessage": "Please read the sticky message for how to verify."
   },
 
   // PERMISSION LEVEL DEFINITIONS.

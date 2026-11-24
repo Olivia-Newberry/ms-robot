@@ -21,11 +21,13 @@
 //     buttons are easy to match to its embed. Nothing is dropped, and entries still
 //     queued survive a restart.
 
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionFlagsBits, SnowflakeUtil } from "discord.js";
+import config from "../config.js";
 import { warn } from "./Logger.js";
 import { componentId } from "./components.js";
 import { getSettings } from "./functions.js";
 import { registerJobType, schedule } from "./jobs.js";
+import { onShutdown } from "./lifecycle.js";
 import { idList } from "./roleTools.js";
 import { escapeToken, lineDiff, renderDiff, tokenize } from "./textDiff.js";
 
@@ -37,20 +39,25 @@ export const escape = (text) => tokenize(text ?? "").map(escapeToken).join("");
 export const jumpLink = (guildId, channelId, messageId) => `https://discord.com/channels/${guildId}/${channelId}${messageId ? `/${messageId}` : ""}`;
 const ts = (ms, style = "R") => `<t:${Math.floor(ms / 1000)}:${style}>`;
 
+// Whether messages in this channel are logged at all. Shared with the startup cache
+// refill below, so it only fetches channels the log would actually use.
+function isLoggedChannel(settings, channel, channelId = channel?.id) {
+  const logChannelId = settings.messageLogChannel;
+  if (!logChannelId || logChannelId === "false") return false;
+  // Mods talking in the log channel would otherwise get logged in the middle of it.
+  if (channelId === logChannelId) return false;
+  // Mods usually ignore a whole staff category. Threads sit a level below their
+  // channel, so the category is the parent's parent.
+  const parent = channel?.isThread?.() ? channel.parent : channel;
+  const ignored = idList(settings.messageLogIgnore);
+  return ![channelId, channel?.parentId, parent?.parentId].some(id => id && ignored.includes(id));
+}
+
 function target(message) {
   if (!message.guild) return null;
   const settings = getSettings(message.guild);
+  if (!isLoggedChannel(settings, message.channel, message.channelId)) return null;
   const channelId = settings.messageLogChannel;
-  if (!channelId || channelId === "false") return null;
-  // Mods talking in the log channel would otherwise get logged in the middle of it.
-  if (message.channelId === channelId) return null;
-
-  // Mods usually ignore a whole staff category. Threads sit a level below their
-  // channel, so the category is the parent's parent.
-  const channel = message.channel;
-  const parent = channel?.isThread?.() ? channel.parent : channel;
-  const ignored = idList(settings.messageLogIgnore);
-  if ([message.channelId, channel?.parentId, parent?.parentId].some(id => id && ignored.includes(id))) return null;
 
   const logChannel = message.guild.channels.cache.get(channelId);
   if (!logChannel?.isTextBased()) return null;
@@ -105,7 +112,7 @@ export function logEdit(oldMessage, newMessage) {
   const channel = target(newMessage);
   if (!channel) return;
 
-  const embed = baseEmbed(COLORS.edit, "Message edited", newMessage, " · struck through = removed, underlined = added, [+ ] / [− ] = emoji")
+  const embed = baseEmbed(COLORS.edit, "Message edited", newMessage, " · struck through = removed, underlined = added, [+ ] / [− ] = emoji or punctuation")
     .setTimestamp(newMessage.editedTimestamp ?? Date.now());
   const files = [];
   if (oldMessage.partial) {
@@ -141,6 +148,9 @@ export function logDelete(message) {
   if (skipAuthor(message)) return;
   const channel = target(message);
   if (!channel) return;
+  // Nothing is known about it but its ID, so it's counted into a summary instead of
+  // getting an entry of its own (see below).
+  if (message.partial) return noteUncachedDelete(channel, message);
 
   const embed = baseEmbed(COLORS.delete, "Message deleted", message).setTimestamp(Date.now());
   const files = [];
@@ -329,3 +339,105 @@ registerJobType(PREFIX, {
     return finished;
   },
 });
+
+// ---- Deletes of messages that weren't cached ----------------------------------------
+//
+// Rolling deletes (a bot clearing out old messages) remove one message at a time, often
+// months old. Nothing about those is cached: no author, no text, only the ID. An entry
+// each would bury the log in identical "original text isn't available" cards, and
+// keeping the bot up longer wouldn't help, since the cache only covers recent messages.
+// So they're counted per channel and posted as one summary once the deletes stop for a
+// few minutes. The IDs still say when the messages were sent.
+
+const SUMMARY_DELAY = 5 * 60 * 1000;
+const uncached = new Map();
+
+function noteUncachedDelete(logChannel, message) {
+  const key = `${logChannel.id}:${message.channelId}`;
+  let entry = uncached.get(key);
+  if (!entry) uncached.set(key, entry = { logChannel, guildId: message.guildId, channelId: message.channelId, ids: [], timer: null });
+  entry.ids.push(message.id);
+  // Waits until the deletes have stopped for SUMMARY_DELAY, so one purge is one entry.
+  clearTimeout(entry.timer);
+  entry.timer = setTimeout(() => postUncachedSummary(key), SUMMARY_DELAY);
+  entry.timer.unref?.();
+}
+
+function postUncachedSummary(key) {
+  const entry = uncached.get(key);
+  if (!entry) return;
+  uncached.delete(key);
+  clearTimeout(entry.timer);
+  const count = entry.ids.length;
+  const sent = entry.ids.map(id => SnowflakeUtil.timestampFrom(id)).sort((a, b) => a - b);
+  const when = sent[0] === sent.at(-1) || ts(sent[0], "D") === ts(sent.at(-1), "D")
+    ? `Sent ${ts(sent[0], "D")}`
+    : `Sent between ${ts(sent[0], "D")} and ${ts(sent.at(-1), "D")}`;
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.delete)
+    .setTitle(`${count} older message${count === 1 ? "" : "s"} deleted`)
+    .setDescription(`${when}. ${count === 1 ? "It was" : "They were"} older than the bot's cache, so the text and authors aren't known.`)
+    .setTimestamp(Date.now());
+  enqueue(entry.logChannel, {
+    content: `**Deleted** ${count} older message${count === 1 ? "" : "s"} in <#${entry.channelId}>`,
+    embeds: [embed],
+    components: [new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setURL(jumpLink(entry.guildId, entry.channelId, entry.ids.at(-1))).setLabel("Go to channel").setStyle(ButtonStyle.Link),
+    )],
+  });
+}
+
+// Posts every waiting summary now. Used before shutting down: the summaries only exist
+// in memory, but once queued they're saved and sent after the restart.
+export function flushUncachedDeletes() {
+  for (const key of [...uncached.keys()]) postUncachedSummary(key);
+}
+onShutdown(flushUncachedDeletes);
+
+// ---- Refilling the cache after a restart --------------------------------------------
+//
+// Discord never sends the old text of an edited message, and a deleted one can't be
+// fetched, so the log can only show what discord.js still has cached. A restart empties
+// that cache, so recent messages are fetched again at startup: one request per logged
+// channel (Discord's maximum of 100 messages per request), in servers that have the log
+// turned on. Channels and threads active recently (refillWithinHours) get their last 100
+// messages; quieter ones their last 50 (keepPerChannel), whose newest are the ones still
+// likely to be edited or deleted. Either way it's one request per channel. How much is fetched is set in
+// config.js (messageCache).
+//
+// Threads are joined before this runs (modules/threadJoin.js).
+
+const READABLE = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory];
+
+export async function refillMessageCache(guilds, {
+  active = config.messageCache.refill,
+  // The floor every channel keeps through cleanups, so quiet channels start at it.
+  quiet = config.messageCache.keepPerChannel,
+  now = Date.now(),
+} = {}) {
+  let channels = 0, messages = 0;
+  const since = now - config.messageCache.refillWithinHours * 3600 * 1000;
+  for (const guild of guilds) {
+    const settings = getSettings(guild);
+    for (const channel of guild.channels.cache.values()) {
+      if (!channel.isTextBased?.()) continue;
+      if (!isLoggedChannel(settings, channel)) continue;
+      if (!channel.permissionsFor(guild.members.me)?.has(READABLE)) continue;
+      // A channel's newest message ID says when it was sent, without a request. Active
+      // channels get their last `active` messages; quieter ones their last `quiet`, since
+      // those are still the messages most likely to be edited or deleted there.
+      if (!channel.lastMessageId) continue;
+      const limit = SnowflakeUtil.timestampFrom(channel.lastMessageId) >= since ? active : quiet;
+      if (!limit) continue;
+      // One at a time: discord.js waits out rate limits itself, and this runs in the
+      // background, so there's no hurry.
+      // Counted by how much the cache grew rather than how many came back: replies bring
+      // the message they reply to into the cache too, often an older one outside the
+      // fetched window, and messages that were already cached aren't new.
+      const before = channel.messages.cache.size;
+      const fetched = await channel.messages.fetch({ limit: Math.min(limit, 100) }).catch(() => null);
+      if (fetched) { channels++; messages += Math.max(0, channel.messages.cache.size - before); }
+    }
+  }
+  return { channels, messages };
+}

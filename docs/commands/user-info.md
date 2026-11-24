@@ -14,6 +14,24 @@ The info shows:
 - roles,
 - **messages sent** in the server.
 
+## People who aren't in the server
+
+Members of the server always come first. Someone who isn't a member can still be looked
+up by ID or mention (`/userinfo id:`, `!user 123…`), and the reply says clearly that
+they're **not a member of this server**. It shows:
+
+- their public profile (username, ID, avatar, account age), which Discord gives any bot,
+- whether they're banned from this server, and the ban reason,
+- how many messages they sent in this server.
+
+`!user name` looks through current members first; if none match, it searches this
+server's ban list, and lists the matches by ID if there are several.
+
+Other servers the bot is in are never searched or mentioned. Discord's Developer Policy
+restricts using one server's data to track people across servers, and those communities
+haven't agreed to share their member lists. Ban details need the bot to have **Ban
+Members**; without it they're left out.
+
 ## !user
 
 Kept as a message command because moderators use it from habit:

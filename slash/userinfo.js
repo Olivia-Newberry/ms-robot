@@ -9,9 +9,9 @@ export async function run(client, interaction) {
   if (!user) return interaction.reply({ content: "I couldn't find a user with that ID.", flags: MessageFlags.Ephemeral });
   // Deferred because the message count is a search on Discord's side and can be slow.
   await interaction.deferReply();
-  const { member, messages } = await lookUp(client, interaction.guild, user);
+  const { member, messages, ban } = await lookUp(client, interaction.guild, user);
   const ctx = { guild: interaction.guild, settings: interaction.settings, requester: interaction.user };
-  await interaction.editReply({ embeds: [userInfoEmbed(ctx, user, member, messages)] });
+  await interaction.editReply({ embeds: [userInfoEmbed(ctx, user, member, messages, { ban })] });
 }
 
 export const commandData = {

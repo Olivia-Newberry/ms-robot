@@ -16,8 +16,8 @@
 //     batch themselves without adding a delay.
 //   - run(client, jobs, { complete }) returns an array of the jobs it finished; anything
 //     else (including nothing) means all of them.
-//     The rest are retried with backoff, because most failures are Discord hiccups that
-//     clear up. complete(job) removes a job the moment it's done, so a crash halfway
+//     The rest are retried, for up to a day, because most failures are Discord hiccups
+//     or outages that clear up. complete(job) removes a job the moment it's done, so a crash halfway
 //     through a batch only repeats the unfinished part.
 //   - Saved jobs are checked on load (modules/db.js) and one job type's errors are
 //     caught, so bad data or a buggy handler can't stop every other job from running.
@@ -25,10 +25,12 @@
 import { isPlainObject, openStore, quarantine } from "./db.js";
 import { error, warn } from "./Logger.js";
 
-const MAX_ATTEMPTS = 5;
-// Doubled each attempt, so a Discord outage gets minutes to clear rather than being
-// retried every few seconds.
+// A failing job is retried for up to a day before it's given up: Discord outages can
+// last hours, and a message log entry or reminder should still arrive afterwards. The
+// wait doubles each time, from 30 seconds up to 15 minutes, so an outage isn't hammered.
+const GIVE_UP_AFTER = 24 * 60 * 60 * 1000;
 const BACKOFF = 30 * 1000;
+const MAX_BACKOFF = 15 * 60 * 1000;
 // setTimeout overflows past about 24.8 days, so a far-off reminder is reached by
 // waking up regularly rather than with one long timer.
 const MAX_SLEEP = 60 * 1000;
@@ -196,14 +198,17 @@ async function runLane(key, batch) {
       if (!jobs.has(job.id)) continue;           // completed early or cancelled
       if (finishedIds.has(job.id)) { cancel(job.id); continue; }
       job.attempts++;
-      if (job.attempts >= MAX_ATTEMPTS) {
-        warn(`Giving up on job ${job.id} (${job.type}) after ${job.attempts} attempts.`);
+      // Measured from the first failure, so a reminder scheduled days ahead still gets a
+      // full day of retries once it's due.
+      job.firstFailedAt ??= Date.now();
+      if (Date.now() - job.firstFailedAt >= GIVE_UP_AFTER) {
+        warn(`Giving up on job ${job.id} (${job.type}) after a day of failures (${job.attempts} attempts).`);
         // Kept on record so a lost reminder or log entry can still be found later.
-        quarantine("jobs", job.id, job, `failed ${job.attempts} times`);
+        quarantine("jobs", job.id, job, `failed for a day (${job.attempts} attempts)`);
         cancel(job.id);
         continue;
       }
-      job.runAt = Date.now() + BACKOFF * 2 ** (job.attempts - 1);
+      job.runAt = Date.now() + Math.min(BACKOFF * 2 ** (job.attempts - 1), MAX_BACKOFF);
       try { store.set(job.id, job); } catch (e) { error(`Couldn't save retry for job ${job.id}: ${e.message}`); }
     }
   } finally {

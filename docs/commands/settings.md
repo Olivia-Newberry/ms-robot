@@ -20,6 +20,7 @@ is and still works if the role is created later.
 ## /settings
 
 Opens a private panel, one topic per page: General, Roles, Welcome, Logging, Reactions,
+Verification,
 plus "Other" for custom keys added with `/conf`. Move between pages with the menu or the
 arrows.
 
